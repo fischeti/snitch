@@ -22,7 +22,7 @@ module tb_simple_ssr;
   // DUT parameters
   localparam snitch_ssr_pkg::ssr_cfg_t Cfg = '{
     Indirection:    Indirection,
-    IsectMaster:    0,  // TODO
+    IsectMaster:    1,  // TODO
     IsectSlave:     0,  // TODO
     IsectMasterIdx: 0,  // TODO
     IndirOutSpill:  1,

@@ -140,6 +140,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   assign data_req.q.amo = reqrsp_pkg::AMONone;
   assign data_req.q.user = '0;
 
+  assign lane_rdata_o = fifo_out;
   assign data_req.q.data = fifo_out;
   assign data_req.q.strb = '1;
 
@@ -166,12 +167,8 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   end
 
   if (Cfg.IsectMaster) begin : gen_isect_master
-
-    logic meta_full;
-    logic meta_last, meta_zero;
-
+    logic meta_empty;
     // A metadata FIFO keeping the zero and last flags for in-flight reads only.
-    // Its full flag is used for request limiting in both reads *and* writes, however.
     fifo_v3 #(
       .FALL_THROUGH ( 0               ),
       .DATA_WIDTH   ( 2               ),
@@ -179,44 +176,34 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
     ) i_fifo_meta (
       .clk_i,
       .rst_ni,
-      .testmode_i ( 1'b0       ),
-      .flush_i    ( '0         ),
-      .full_o     ( meta_full  ),
-      .empty_o    (  ),
+      .testmode_i ( 1'b0        ),
+      .flush_i    ( '0          ),
+      .full_o     (  ),
+      .empty_o    ( meta_empty  ),
       .usage_o    (  ),
       .data_i     ( {agen_last, agen_zero} ),
-      .push_i     ( credit_take ),
+      .push_i     ( credit_take & ~data_req.q.write ),
       .data_o     ( {lane_rlast_o, lane_rzero_o} ),
-      .pop_i      ( credit_give )
+      .pop_i      ( credit_give & ~meta_empty)
     );
-
-    assign has_credit = ~meta_full;
-
-    // Output is either FIFO data or zero
-    assign lane_rdata_o = fifo_out;
-
   end else begin : gen_no_isect_master
-
-    // Credit counter that keeps track of the number of memory requests issued
-    // to ensure that the FIFO does not overfill.
-    always_comb begin
-      credit_d = credit_q;
-      if (credit_take & ~credit_give)
-        credit_d = credit_q - 1;
-      else if (!credit_take & credit_give)
-        credit_d = credit_q + 1;
-    end
-    assign has_credit = (credit_q != '0);
-
-    `FFARN(credit_q, credit_d, Cfg.DataCredits, clk_i, rst_ni)
-
-    assign lane_rdata_o = fifo_out;
-
-    // If not an intersection master: no zero words are emitted, no last flag is provided
-    assign lane_rzero_o = 1'b0;
+    // If not an intersection master, we cannot track last items or inject zeros.
     assign lane_rlast_o = 1'b0;
-
+    assign lane_rzero_o = 1'b0;
   end
+
+  // Credit counter that keeps track of the number of memory requests issued
+  // to ensure that the FIFO does not overfill.
+  always_comb begin
+    credit_d = credit_q;
+    if (credit_take & ~credit_give)
+      credit_d = credit_q - 1;
+    else if (!credit_take & credit_give)
+      credit_d = credit_q + 1;
+  end
+  assign has_credit = (credit_q != '0);
+
+  `FFARN(credit_q, credit_d, Cfg.DataCredits, clk_i, rst_ni)
 
   // Repetition counter.
   `FFLARNC(rep_q, rep_q + 1, rep_enable, rep_enable & rep_done, '0, clk_i, rst_ni)
