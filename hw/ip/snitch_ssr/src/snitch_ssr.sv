@@ -18,6 +18,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   parameter type isect_slv_rsp_t = logic,
   parameter type isect_mst_req_t = logic,
   parameter type isect_mst_rsp_t = logic,
+  parameter type ssr_rdata_t = logic,
   /// Derived parameter *Do not override*
   parameter type addr_t = logic [AddrWidth-1:0],
   parameter type data_t = logic [DataWidth-1:0]
@@ -30,9 +31,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   output logic [31:0] cfg_rdata_o,
   input  logic [31:0] cfg_wdata_i,
   // Register lanes from switch.
-  output data_t       lane_rdata_o,
-  output logic        lane_rzero_o, // Whether the read word is zero (and lane_rdata_o invalid)
-  output logic        lane_rlast_o, // Whether this is the last read word (iff Cfg.IsectMaster)
+  output ssr_rdata_t  lane_rdata_o, // Bundles zero and last flags
   input  data_t       lane_wdata_i,
   output logic        lane_valid_o,
   input  logic        lane_ready_i,
@@ -55,6 +54,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   logic has_credit, credit_take, credit_give;
   logic [Cfg.RptWidth-1:0] rep_max, rep_q, rep_done, rep_enable;
   logic agen_last, agen_zero;
+  logic lane_last, lane_zero;
 
   fifo_v3 #(
     .FALL_THROUGH ( 0           ),
@@ -140,7 +140,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   assign data_req.q.amo = reqrsp_pkg::AMONone;
   assign data_req.q.user = '0;
 
-  assign lane_rdata_o = fifo_out;
+  assign lane_rdata_o = '{data: fifo_out, zero: lane_zero, last: lane_last};
   assign data_req.q.data = fifo_out;
   assign data_req.q.strb = '1;
 
@@ -160,7 +160,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
       fifo_push = data_rsp.p_valid;
       fifo_in = data_rsp.p.data;
       rep_enable = lane_ready_i & ~fifo_empty;
-      fifo_pop = rep_enable & rep_done & ~lane_rzero_o;
+      fifo_pop = rep_enable & rep_done & ~lane_zero;
       credit_take = data_req_qvalid & data_rsp.q_ready;
       credit_give = fifo_pop;
     end
@@ -183,13 +183,13 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
       .usage_o    (  ),
       .data_i     ( {agen_last, agen_zero} ),
       .push_i     ( credit_take & ~data_req.q.write ),
-      .data_o     ( {lane_rlast_o, lane_rzero_o} ),
-      .pop_i      ( credit_give & ~meta_empty)
+      .data_o     ( {lane_last, lane_zero} ),
+      .pop_i      ( credit_give & ~meta_empty )
     );
   end else begin : gen_no_isect_master
     // If not an intersection master, we cannot track last items or inject zeros.
-    assign lane_rlast_o = 1'b0;
-    assign lane_rzero_o = 1'b0;
+    assign lane_zero = 1'b0;
+    assign lane_last = 1'b0;
   end
 
   // Credit counter that keeps track of the number of memory requests issued

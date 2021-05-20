@@ -11,6 +11,7 @@ module snitch_ssr_switch #(
   parameter int unsigned RPorts     = 0,
   parameter int unsigned WPorts     = 0,
   parameter logic [NumSsrs:0][4:0] SsrRegs = '0,
+  parameter type ssr_rdata_t = logic,
   /// Derived parameter *Do not override*
   parameter int unsigned Ports = RPorts + WPorts,
   parameter type data_t = logic [DataWidth-1:0]
@@ -19,7 +20,7 @@ module snitch_ssr_switch #(
   input  logic             rst_ni,
   // Read and write streams coming from the processor.
   input  logic  [RPorts-1:0][4:0] ssr_raddr_i,
-  output data_t [RPorts-1:0]      ssr_rdata_o,
+  output ssr_rdata_t [RPorts-1:0] ssr_rdata_o,
   input  logic  [RPorts-1:0]      ssr_rvalid_i,
   output logic  [RPorts-1:0]      ssr_rready_o,
   input  logic  [RPorts-1:0]      ssr_rdone_i,
@@ -30,7 +31,7 @@ module snitch_ssr_switch #(
   output logic  [WPorts-1:0]      ssr_wready_o,
   input  logic  [WPorts-1:0]      ssr_wdone_i,
   // Ports into memory.
-  input  data_t [NumSsrs-1:0]     lane_rdata_i,
+  input  ssr_rdata_t [NumSsrs-1:0] lane_rdata_i,
   output data_t [NumSsrs-1:0]     lane_wdata_o,
   output logic  [NumSsrs-1:0]     lane_write_o,
   input  logic  [NumSsrs-1:0]     lane_valid_i,
@@ -38,7 +39,7 @@ module snitch_ssr_switch #(
 );
 
   logic   [Ports-1:0][4:0] ssr_addr;
-  data_t  [Ports-1:0]      ssr_rdata;
+  ssr_rdata_t [Ports-1:0]  ssr_rdata;
   data_t  [Ports-1:0]      ssr_wdata;
   logic   [Ports-1:0]      ssr_valid;
   logic   [Ports-1:0]      ssr_ready;

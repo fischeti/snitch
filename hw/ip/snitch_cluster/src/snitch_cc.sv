@@ -7,6 +7,7 @@
 `include "common_cells/assertions.svh"
 `include "common_cells/registers.svh"
 `include "snitch_vm/typedef.svh"
+`include "snitch_ssr/typedef.svh"
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
@@ -397,8 +398,11 @@ module snitch_cc #(
   snitch_pkg::fpu_sequencer_trace_port_t fpu_sequencer_trace;
   // pragma translate_on
 
+  // SSR lane types
+  `SSR_LANE_TYPEDEF_ALL(ssr, data_t)
+
   logic  [2:0][4:0] ssr_raddr;
-  data_t [2:0]      ssr_rdata;
+  ssr_rdata_t [2:0] ssr_rdata;
   logic  [2:0]      ssr_rvalid;
   logic  [2:0]      ssr_rready;
   logic  [2:0]      ssr_rdone;
@@ -454,8 +458,9 @@ module snitch_cc #(
       .data_rsp_i       ( fpu_drsp       ),
       .fpu_rnd_mode_i   ( fpu_rnd_mode   ),
       .fpu_status_o     ( fpu_status     ),
+      // TODO @paulsc: parameterize SSRs in FPSS!
       .ssr_raddr_o      ( ssr_raddr      ),
-      .ssr_rdata_i      ( ssr_rdata      ),
+      .ssr_rdata_i      ( {ssr_rdata[2].data, ssr_rdata[1].data, ssr_rdata[0].data} ),
       .ssr_rvalid_o     ( ssr_rvalid     ),
       .ssr_rready_i     ( ssr_rready     ),
       .ssr_rdone_o      ( ssr_rdone      ),
@@ -671,7 +676,8 @@ module snitch_cc #(
       .DataWidth (DataWidth),
       .tcdm_req_t (tcdm_req_t),
       .tcdm_rsp_t (tcdm_rsp_t),
-      .tcdm_user_t (tcdm_user_t)
+      .tcdm_user_t (tcdm_user_t),
+      .ssr_rdata_t(ssr_rdata_t)
     ) i_snitch_ssr_streamer (
       .clk_i,
       .rst_ni         ( rst_ni    ),

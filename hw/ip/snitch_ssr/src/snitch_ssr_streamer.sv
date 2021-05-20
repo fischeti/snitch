@@ -19,6 +19,7 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   parameter type tcdm_user_t  = logic,
   parameter type tcdm_req_t   = logic,
   parameter type tcdm_rsp_t   = logic,
+  parameter type ssr_rdata_t  = logic,
   /// Derived parameter *Do not override*
   parameter type addr_t = logic [AddrWidth-1:0],
   parameter type data_t = logic [DataWidth-1:0]
@@ -32,7 +33,7 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   input  logic [31:0]      cfg_wdata_i,
   // Read and write streams coming from the processor.
   input  logic  [RPorts-1:0][4:0] ssr_raddr_i,
-  output data_t [RPorts-1:0]      ssr_rdata_o,
+  output ssr_rdata_t [RPorts-1:0] ssr_rdata_o,
   input  logic  [RPorts-1:0]      ssr_rvalid_i,
   output logic  [RPorts-1:0]      ssr_rready_o,
   input  logic  [RPorts-1:0]      ssr_rdone_i,
@@ -90,7 +91,7 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   isect_mst_rsp_t [1:0]         isect_mst_rsp;
   isect_slv_rsp_t               isect_slv_rsp;
 
-  data_t [NumSsrs-1:0] lane_rdata;
+  ssr_rdata_t [NumSsrs-1:0] lane_rdata;
   data_t [NumSsrs-1:0] lane_wdata;
   logic  [NumSsrs-1:0] lane_write;
   logic  [NumSsrs-1:0] lane_valid;
@@ -106,7 +107,8 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
     .NumSsrs   ( NumSsrs    ),
     .RPorts    ( RPorts     ),
     .WPorts    ( WPorts     ),
-    .SsrRegs   ( SsrRegs    )
+    .SsrRegs   ( SsrRegs    ),
+    .ssr_rdata_t ( ssr_rdata_t )
   ) i_switch (
     .clk_i,
     .rst_ni,
@@ -138,7 +140,8 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
       .isect_slv_req_t  ( isect_slv_req_t ),
       .isect_slv_rsp_t  ( isect_slv_rsp_t ),
       .isect_mst_req_t  ( isect_mst_req_t ),
-      .isect_mst_rsp_t  ( isect_mst_rsp_t )
+      .isect_mst_rsp_t  ( isect_mst_rsp_t ),
+      .ssr_rdata_t  ( ssr_rdata_t )
     ) i_ssr (
       .clk_i,
       .rst_ni,
@@ -147,9 +150,6 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
       .cfg_write_i    ( cfg_write_i & dmcfg_strobe[i] ),
       .cfg_rdata_o    ( dmcfg_rdata  [i]  ),
       .lane_rdata_o   ( lane_rdata   [i]  ),
-      // TODO: connect metadata outputs
-      .lane_rzero_o   (  ),
-      .lane_rlast_o   (  ),
       .lane_wdata_i   ( lane_wdata   [i]  ),
       .lane_valid_o   ( lane_valid   [i]  ),
       .lane_ready_i   ( lane_ready   [i]  ),
@@ -164,6 +164,7 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   end
 
   if (IsectCfg.NumMaster0 != 0) begin : gen_intersector
+    // TODO: do we need tp cut timing here? most likely yes!
     snitch_ssr_intersector #(
       .isect_slv_req_t ( isect_slv_req_t ),
       .isect_slv_rsp_t ( isect_slv_rsp_t ),

@@ -44,6 +44,9 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   // Intersector types
   `SSR_ISECT_TYPEDEF_ALL(isect, logic [Cfg.IndexWidth-1:0])
 
+  // SSR lane types
+  `SSR_LANE_TYPEDEF_ALL(ssr, data_t)
+
   // Configuration written through proper registers
   typedef struct packed {
     logic [31:0] idx_shift;
@@ -116,7 +119,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   logic         lane_ready_i;
   tcdm_req_t    mem_req_o;
   tcdm_rsp_t    mem_rsp_i;
-  logic [DataWidth-1:0] lane_rdata_o;
+  ssr_rdata_t           lane_rdata_o;
   logic [DataWidth-1:0] lane_wdata_i;
   logic [AddrWidth-1:0] tcdm_start_address_i = '0;    // (currently) required for test flow
 
@@ -131,7 +134,8 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
     .isect_slv_req_t  ( isect_slv_req_t ),
     .isect_slv_rsp_t  ( isect_slv_rsp_t ),
     .isect_mst_req_t  ( isect_mst_req_t ),
-    .isect_mst_rsp_t  ( isect_mst_rsp_t )
+    .isect_mst_rsp_t  ( isect_mst_rsp_t ),
+    .ssr_rdata_t      ( ssr_rdata_t     )
   ) i_snitch_ssr (
     .clk_i          ( clk       ),
     .rst_ni         ( rst_n     ),
@@ -140,9 +144,6 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
     .cfg_rdata_o,
     .cfg_wdata_i,
     .lane_rdata_o,
-    // TODO: test metadata outputs
-    .lane_rzero_o   (  ),
-    .lane_rlast_o   (  ),
     .lane_wdata_i,
     .lane_valid_o,
     .lane_ready_i,
@@ -324,7 +325,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   // Swap valid and ready to emulate 3-way handshake
   assign lane_wdata_i   = ssr_bus.wdata;
   assign lane_ready_i   = ssr_bus.valid;
-  assign ssr_bus.rdata  = lane_rdata_o;
+  assign ssr_bus.rdata  = lane_rdata_o.data;  // TODO: use flags?
   assign ssr_bus.ready  = lane_valid_o;
 
   // Reset driver
