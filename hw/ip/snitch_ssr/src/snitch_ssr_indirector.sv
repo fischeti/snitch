@@ -215,7 +215,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
   assign idx_fifo_pop = idx_bytecnt_ena &
       (last_word ? idx_bytecnt_q == last_idx_byteoffs : idx_bytecnt_next == '0);
 
-  // Serialize whenever words are available and downstream ready
-  assign idx_bytecnt_ena  = ~idx_fifo_empty & idx_ser_ready;
+  // Serialize whenever words are available and downstream ready and no zero inject
+  assign idx_bytecnt_ena  = ~idx_fifo_empty & idx_ser_ready & ~mem_zero_o;
 
 endmodule

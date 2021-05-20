@@ -171,10 +171,10 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
       .isect_mst_req_t ( isect_mst_req_t ),
       .isect_mst_rsp_t ( isect_mst_rsp_t )
     ) i_snitch_ssr_intersector (
-      .isect_mst_req_i ( {isect_mst_req[IsectCfg.IdxMaster1], isect_mst_req[IsectCfg.IdxMaster0]} ),
-      .isect_slv_req_i ( isect_slv_req[IsectCfg.IdxSlave] ),
-      .isect_mst_rsp_o ( isect_mst_rsp ),
-      .isect_slv_rsp_o ( isect_slv_rsp )
+      .mst_req_i ( {isect_mst_req[IsectCfg.IdxMaster1], isect_mst_req[IsectCfg.IdxMaster0]} ),
+      .slv_req_i ( isect_slv_req[IsectCfg.IdxSlave] ),
+      .mst_rsp_o ( isect_mst_rsp ),
+      .slv_rsp_o ( isect_slv_rsp )
     );
   end else begin : gen_no_intersector
     assign isect_mst_rsp = '0;
