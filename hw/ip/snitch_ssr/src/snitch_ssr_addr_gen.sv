@@ -81,21 +81,9 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
 
   logic alias_strobe;
 
-  typedef struct packed {
-    logic done;
-    logic write;
-    logic [1:0] dims;
-    logic indir;
-  } config_t;
-  config_t config_q, config_qn, config_sd, config_sq, config_sqn;
+  cfg_status_upper_t config_q, config_qn, config_sd, config_sq, config_sqn;
 
-  typedef struct packed {
-    logic no_indir;       // Inverted as aliases aligned at upper address edge
-    logic write;
-    logic [1:0] dims;
-  } alias_fields_t;
-
-  alias_fields_t alias_fields;
+  cfg_alias_fields_t alias_fields;
 
   // Read map for added indirection registers
   typedef struct packed {

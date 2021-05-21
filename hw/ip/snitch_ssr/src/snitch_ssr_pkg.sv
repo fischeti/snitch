@@ -36,4 +36,20 @@ package snitch_ssr_pkg;
     int unsigned  IdxSlave;
   } isect_cfg_t;
 
+  // Fields used in addresses of upper alias registers
+  // *Not* the same order as alias address, but as in upper status fields
+  typedef struct packed {
+    logic no_indir;
+    logic write;
+    logic [1:0] dims;
+  } cfg_alias_fields_t;
+
+  // Upper fields accessible on status register
+  typedef struct packed {
+    logic done;
+    logic write;
+    logic [1:0] dims;
+    logic indir;
+  } cfg_status_upper_t;
+
 endpackage
