@@ -14,8 +14,8 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   parameter int unsigned WPorts     = 0,
   parameter int unsigned AddrWidth  = 0,
   parameter int unsigned DataWidth  = 0,
-  parameter ssr_cfg_t [NumSsrs-1:0] SsrCfgs = '0,
-  parameter logic [NumSsrs:0][4:0]  SsrRegs = '0,
+  parameter ssr_cfg_t [NumSsrs-1:0]  SsrCfgs = '0,
+  parameter logic [NumSsrs-1:0][4:0] SsrRegs = '0,
   parameter type tcdm_user_t  = logic,
   parameter type tcdm_req_t   = logic,
   parameter type tcdm_rsp_t   = logic,
@@ -59,11 +59,11 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
         if (SsrCfgs[i].IndexWidth > ret.IndexWidth)
           ret.IndexWidth = SsrCfgs[i].IndexWidth;
         if (SsrCfgs[i].IsectMasterIdx) begin
-          ret.NumMaster0++;
-          ret.IdxMaster0 = i;
-        end else begin
           ret.NumMaster1++;
           ret.IdxMaster1 = i;
+        end else begin
+          ret.NumMaster0++;
+          ret.IdxMaster0 = i;
         end
       end if (SsrCfgs[i].IsectSlave) begin
         ret.NumSlave++;
@@ -77,8 +77,8 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   localparam isect_cfg_t IsectCfg = derive_isect_cfg();
 
   // Intersection configuration assertions
-  `ASSERT_INIT(isect_max_one_master0, IsectCfg.NumMaster0 < 1)
-  `ASSERT_INIT(isect_max_one_slave, IsectCfg.NumSlave < 1)
+  `ASSERT_INIT(isect_max_one_master0, IsectCfg.NumMaster0 <= 1)
+  `ASSERT_INIT(isect_max_one_slave, IsectCfg.NumSlave <= 1)
   `ASSERT_INIT(isect_num_masters_equal, IsectCfg.NumMaster0 == IsectCfg.NumMaster1)
   `ASSERT_INIT(isect_slave_only_if_master, IsectCfg.NumSlave <= IsectCfg.NumMaster0)
 

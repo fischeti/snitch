@@ -29,7 +29,7 @@ module snitch_ssr_intersector #(
   assign isect_mslag  = (mst_req_i[1].idx < mst_req_i[0].idx);
 
   // Source indices must both have valid data to proceed, and match iff in matching mode.
-  assign src_valid    = slv_req_i[0].valid & slv_req_i[1].valid & (isect_merge | isect_match);
+  assign src_valid    = mst_req_i[0].valid & mst_req_i[1].valid & (isect_merge | isect_match);
 
   // Destination can stall iff enabled
   assign dst_ready    = ~slv_req_i.ena | slv_req_i.ready;
