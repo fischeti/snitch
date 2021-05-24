@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MemInfo Version="1" Minor="0">
+  <Processor Endianness="Little" InstPath="dummy">
+  <AddressSpace Name="brom" Begin="0" End="2048">
+      <BusBlock>
+        <BitLane MemType="RAMB32" Placement="X4Y103">
+          <DataWidth MSB="63" LSB="0"/>
+          <AddressRange Begin="0" End="2048"/>
+          <Parity ON="false" NumBits="0"/>
+        </BitLane>
+      </BusBlock>
+    </AddressSpace>
+  </Processor>
+<Config>
+  <Option Name="Part" Val="xcvu37p-fsvh2892-2L-e"/>
+</Config>
+</MemInfo>
