@@ -326,6 +326,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::FSQRT_S: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
       end
       riscv_instr::FMADD_S: begin
         fpu_op = fpnew_pkg::FMADD;
@@ -412,6 +413,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::VFSQRT_S: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1;
       end
@@ -527,6 +529,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::FSQRT_D: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP64;
         dst_fmt      = fpnew_pkg::FP64;
       end
@@ -668,6 +671,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::FSQRT_H: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP16;
         dst_fmt      = fpnew_pkg::FP16;
         if (acc_req_q.data_op[14:12] == 3'b101) begin
@@ -866,6 +870,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::VFSQRT_H: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP16;
         dst_fmt      = fpnew_pkg::FP16;
         vectorial_op = 1'b1;
@@ -1059,6 +1064,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::VFSQRT_AH: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP16ALT;
         dst_fmt      = fpnew_pkg::FP16ALT;
         vectorial_op = 1'b1;
@@ -1253,6 +1259,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::FSQRT_B: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP8;
         dst_fmt      = fpnew_pkg::FP8;
       end
@@ -1417,6 +1424,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       riscv_instr::VFSQRT_B: begin
         fpu_op = fpnew_pkg::SQRT;
         op_select[0] = RegA;
+        op_select[1] = RegA;
         src_fmt      = fpnew_pkg::FP8;
         dst_fmt      = fpnew_pkg::FP8;
         vectorial_op = 1'b1;
