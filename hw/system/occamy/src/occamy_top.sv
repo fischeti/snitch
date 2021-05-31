@@ -73,44 +73,30 @@ module occamy_top
     input logic [3:0] ext_irq_i,
 
     /// HBM2e Ports
-    output axi_a48_d512_i8_u0_req_t  hbm_0_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_0_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_1_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_1_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_2_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_2_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_3_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_3_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_4_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_4_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_5_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_5_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_6_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_6_rsp_i,
-    output axi_a48_d512_i8_u0_req_t  hbm_7_req_o,
-    input  axi_a48_d512_i8_u0_resp_t hbm_7_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_0_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_0_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_1_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_1_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_2_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_2_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_3_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_3_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_4_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_4_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_5_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_5_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_6_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_6_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  hbm_7_req_o,
+    input  axi_a48_d512_i5_u0_resp_t hbm_7_rsp_i,
 
     /// HBI Ports
     input  axi_a48_d512_i3_u0_req_t  hbi_0_req_i,
     output axi_a48_d512_i3_u0_resp_t hbi_0_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_1_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_1_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_2_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_2_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_3_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_3_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_4_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_4_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_5_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_5_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_6_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_6_rsp_o,
-    input  axi_a48_d512_i3_u0_req_t  hbi_7_req_i,
-    output axi_a48_d512_i3_u0_resp_t hbi_7_rsp_o,
 
     /// PCIe Ports
-    output axi_a48_d512_i8_u0_req_t  pcie_axi_req_o,
-    input  axi_a48_d512_i8_u0_resp_t pcie_axi_rsp_i,
+    output axi_a48_d512_i5_u0_req_t  pcie_axi_req_o,
+    input  axi_a48_d512_i5_u0_resp_t pcie_axi_rsp_i,
 
     input  axi_a48_d512_i3_u0_req_t  pcie_axi_req_i,
     output axi_a48_d512_i3_u0_resp_t pcie_axi_rsp_o
@@ -142,15 +128,8 @@ module occamy_top
 
   assign irq.ext_irq = ext_irq_i;
 
-  addr_t [7:0] s1_quadrant_base_addr;
+  addr_t [0:0] s1_quadrant_base_addr;
   assign s1_quadrant_base_addr[0] = ClusterBaseOffset + 0 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[1] = ClusterBaseOffset + 1 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[2] = ClusterBaseOffset + 2 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[3] = ClusterBaseOffset + 3 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[4] = ClusterBaseOffset + 4 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[5] = ClusterBaseOffset + 5 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[6] = ClusterBaseOffset + 6 * S1QuadrantAddressSpace;
-  assign s1_quadrant_base_addr[7] = ClusterBaseOffset + 7 * S1QuadrantAddressSpace;
 
   ///////////////////
   //   CROSSBARS   //
@@ -225,51 +204,44 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   );
 
   /// Address map of the `soc_wide_xbar` crossbar.
-  xbar_rule_48_t [18:0] SocWideXbarAddrmap;
+  xbar_rule_48_t [11:0] SocWideXbarAddrmap;
   assign SocWideXbarAddrmap = '{
-  '{ idx: 8, start_addr: 48'h80000000, end_addr: 48'hc0000000 },
-  '{ idx: 8, start_addr: 48'h1000000000, end_addr: 48'h1040000000 },
-  '{ idx: 9, start_addr: 48'hc0000000, end_addr: 48'h100000000 },
-  '{ idx: 9, start_addr: 48'h1040000000, end_addr: 48'h1080000000 },
-  '{ idx: 10, start_addr: 48'h1080000000, end_addr: 48'h10c0000000 },
-  '{ idx: 11, start_addr: 48'h10c0000000, end_addr: 48'h1100000000 },
-  '{ idx: 12, start_addr: 48'h1100000000, end_addr: 48'h1140000000 },
-  '{ idx: 13, start_addr: 48'h1140000000, end_addr: 48'h1180000000 },
-  '{ idx: 14, start_addr: 48'h1180000000, end_addr: 48'h11c0000000 },
-  '{ idx: 15, start_addr: 48'h11c0000000, end_addr: 48'h1200000000 },
-  '{ idx: 16, start_addr: 48'h20000000, end_addr: 48'h70000000 },
-  '{ idx: 0, start_addr: s1_quadrant_base_addr[0], end_addr: s1_quadrant_base_addr[0] + S1QuadrantAddressSpace },
-  '{ idx: 1, start_addr: s1_quadrant_base_addr[1], end_addr: s1_quadrant_base_addr[1] + S1QuadrantAddressSpace },
-  '{ idx: 2, start_addr: s1_quadrant_base_addr[2], end_addr: s1_quadrant_base_addr[2] + S1QuadrantAddressSpace },
-  '{ idx: 3, start_addr: s1_quadrant_base_addr[3], end_addr: s1_quadrant_base_addr[3] + S1QuadrantAddressSpace },
-  '{ idx: 4, start_addr: s1_quadrant_base_addr[4], end_addr: s1_quadrant_base_addr[4] + S1QuadrantAddressSpace },
-  '{ idx: 5, start_addr: s1_quadrant_base_addr[5], end_addr: s1_quadrant_base_addr[5] + S1QuadrantAddressSpace },
-  '{ idx: 6, start_addr: s1_quadrant_base_addr[6], end_addr: s1_quadrant_base_addr[6] + S1QuadrantAddressSpace },
-  '{ idx: 7, start_addr: s1_quadrant_base_addr[7], end_addr: s1_quadrant_base_addr[7] + S1QuadrantAddressSpace }
+  '{ idx: 1, start_addr: 48'h80000000, end_addr: 48'hc0000000 },
+  '{ idx: 1, start_addr: 48'h1000000000, end_addr: 48'h1040000000 },
+  '{ idx: 2, start_addr: 48'hc0000000, end_addr: 48'h100000000 },
+  '{ idx: 2, start_addr: 48'h1040000000, end_addr: 48'h1080000000 },
+  '{ idx: 3, start_addr: 48'h1080000000, end_addr: 48'h10c0000000 },
+  '{ idx: 4, start_addr: 48'h10c0000000, end_addr: 48'h1100000000 },
+  '{ idx: 5, start_addr: 48'h1100000000, end_addr: 48'h1140000000 },
+  '{ idx: 6, start_addr: 48'h1140000000, end_addr: 48'h1180000000 },
+  '{ idx: 7, start_addr: 48'h1180000000, end_addr: 48'h11c0000000 },
+  '{ idx: 8, start_addr: 48'h11c0000000, end_addr: 48'h1200000000 },
+  '{ idx: 9, start_addr: 48'h20000000, end_addr: 48'h70000000 },
+  '{ idx: 0, start_addr: s1_quadrant_base_addr[0], end_addr: s1_quadrant_base_addr[0] + S1QuadrantAddressSpace }
 };
 
-  soc_wide_xbar_in_req_t   [17:0] soc_wide_xbar_in_req;
-  soc_wide_xbar_in_resp_t  [17:0] soc_wide_xbar_in_rsp;
-  soc_wide_xbar_out_req_t  [16:0] soc_wide_xbar_out_req;
-  soc_wide_xbar_out_resp_t [16:0] soc_wide_xbar_out_rsp;
+  soc_wide_xbar_in_req_t   [3:0] soc_wide_xbar_in_req;
+  soc_wide_xbar_in_resp_t  [3:0] soc_wide_xbar_in_rsp;
+  soc_wide_xbar_out_req_t  [9:0] soc_wide_xbar_out_req;
+  soc_wide_xbar_out_resp_t [9:0] soc_wide_xbar_out_rsp;
 
   axi_xbar #(
-      .Cfg(SocWideXbarCfg),
-      .Connectivity  ( 306'b011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110 ),
+      .Cfg          (SocWideXbarCfg),
+      .Connectivity (40'b0111111111111111111111111111111111111110),
       .slv_aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .mst_aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .slv_b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .mst_b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
+      .mst_aw_chan_t(axi_a48_d512_i5_u0_aw_chan_t),
+      .w_chan_t     (axi_a48_d512_i3_u0_w_chan_t),
+      .slv_b_chan_t (axi_a48_d512_i3_u0_b_chan_t),
+      .mst_b_chan_t (axi_a48_d512_i5_u0_b_chan_t),
       .slv_ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .mst_ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .slv_r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .mst_r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .slv_req_t(axi_a48_d512_i3_u0_req_t),
-      .slv_resp_t(axi_a48_d512_i3_u0_resp_t),
-      .mst_req_t(axi_a48_d512_i8_u0_req_t),
-      .mst_resp_t(axi_a48_d512_i8_u0_resp_t),
-      .rule_t(xbar_rule_48_t)
+      .mst_ar_chan_t(axi_a48_d512_i5_u0_ar_chan_t),
+      .slv_r_chan_t (axi_a48_d512_i3_u0_r_chan_t),
+      .mst_r_chan_t (axi_a48_d512_i5_u0_r_chan_t),
+      .slv_req_t    (axi_a48_d512_i3_u0_req_t),
+      .slv_resp_t   (axi_a48_d512_i3_u0_resp_t),
+      .mst_req_t    (axi_a48_d512_i5_u0_req_t),
+      .mst_resp_t   (axi_a48_d512_i5_u0_resp_t),
+      .rule_t       (xbar_rule_48_t)
   ) i_soc_wide_xbar (
       .clk_i                (clk_i),
       .rst_ni               (rst_ni),
@@ -284,45 +256,38 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   );
 
   /// Address map of the `soc_narrow_xbar` crossbar.
-  xbar_rule_48_t [12:0] SocNarrowXbarAddrmap;
+  xbar_rule_48_t [5:0] SocNarrowXbarAddrmap;
   assign SocNarrowXbarAddrmap = '{
-  '{ idx: 8, start_addr: 48'h00000000, end_addr: 48'h00001000 },
-  '{ idx: 9, start_addr: 48'h70000000, end_addr: 48'h80000000 },
-  '{ idx: 10, start_addr: 48'h20000000, end_addr: 48'h70000000 },
-  '{ idx: 10, start_addr: 48'h80000000, end_addr: 48'h1200000000 },
-  '{ idx: 11, start_addr: 48'h01000000, end_addr: 48'h10000000 },
-  '{ idx: 0, start_addr: s1_quadrant_base_addr[0], end_addr: s1_quadrant_base_addr[0] + S1QuadrantAddressSpace },
-  '{ idx: 1, start_addr: s1_quadrant_base_addr[1], end_addr: s1_quadrant_base_addr[1] + S1QuadrantAddressSpace },
-  '{ idx: 2, start_addr: s1_quadrant_base_addr[2], end_addr: s1_quadrant_base_addr[2] + S1QuadrantAddressSpace },
-  '{ idx: 3, start_addr: s1_quadrant_base_addr[3], end_addr: s1_quadrant_base_addr[3] + S1QuadrantAddressSpace },
-  '{ idx: 4, start_addr: s1_quadrant_base_addr[4], end_addr: s1_quadrant_base_addr[4] + S1QuadrantAddressSpace },
-  '{ idx: 5, start_addr: s1_quadrant_base_addr[5], end_addr: s1_quadrant_base_addr[5] + S1QuadrantAddressSpace },
-  '{ idx: 6, start_addr: s1_quadrant_base_addr[6], end_addr: s1_quadrant_base_addr[6] + S1QuadrantAddressSpace },
-  '{ idx: 7, start_addr: s1_quadrant_base_addr[7], end_addr: s1_quadrant_base_addr[7] + S1QuadrantAddressSpace }
+  '{ idx: 1, start_addr: 48'h00000000, end_addr: 48'h00001000 },
+  '{ idx: 2, start_addr: 48'h70000000, end_addr: 48'h80000000 },
+  '{ idx: 3, start_addr: 48'h20000000, end_addr: 48'h70000000 },
+  '{ idx: 3, start_addr: 48'h80000000, end_addr: 48'h1200000000 },
+  '{ idx: 4, start_addr: 48'h01000000, end_addr: 48'h10000000 },
+  '{ idx: 0, start_addr: s1_quadrant_base_addr[0], end_addr: s1_quadrant_base_addr[0] + S1QuadrantAddressSpace }
 };
 
-  soc_narrow_xbar_in_req_t   [ 8:0] soc_narrow_xbar_in_req;
-  soc_narrow_xbar_in_resp_t  [ 8:0] soc_narrow_xbar_in_rsp;
-  soc_narrow_xbar_out_req_t  [11:0] soc_narrow_xbar_out_req;
-  soc_narrow_xbar_out_resp_t [11:0] soc_narrow_xbar_out_rsp;
+  soc_narrow_xbar_in_req_t   [1:0] soc_narrow_xbar_in_req;
+  soc_narrow_xbar_in_resp_t  [1:0] soc_narrow_xbar_in_rsp;
+  soc_narrow_xbar_out_req_t  [4:0] soc_narrow_xbar_out_req;
+  soc_narrow_xbar_out_resp_t [4:0] soc_narrow_xbar_out_rsp;
 
   axi_xbar #(
-      .Cfg(SocNarrowXbarCfg),
-      .Connectivity  ( 108'b111111111111111101111111111110111111111111011111111111101111111111110111111111111011111111111101111111111110 ),
+      .Cfg          (SocNarrowXbarCfg),
+      .Connectivity (10'b1111111110),
       .slv_aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .mst_aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .slv_b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .mst_b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
+      .mst_aw_chan_t(axi_a48_d64_i5_u0_aw_chan_t),
+      .w_chan_t     (axi_a48_d64_i4_u0_w_chan_t),
+      .slv_b_chan_t (axi_a48_d64_i4_u0_b_chan_t),
+      .mst_b_chan_t (axi_a48_d64_i5_u0_b_chan_t),
       .slv_ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .mst_ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .slv_r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .mst_r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .slv_req_t(axi_a48_d64_i4_u0_req_t),
-      .slv_resp_t(axi_a48_d64_i4_u0_resp_t),
-      .mst_req_t(axi_a48_d64_i8_u0_req_t),
-      .mst_resp_t(axi_a48_d64_i8_u0_resp_t),
-      .rule_t(xbar_rule_48_t)
+      .mst_ar_chan_t(axi_a48_d64_i5_u0_ar_chan_t),
+      .slv_r_chan_t (axi_a48_d64_i4_u0_r_chan_t),
+      .mst_r_chan_t (axi_a48_d64_i5_u0_r_chan_t),
+      .slv_req_t    (axi_a48_d64_i4_u0_req_t),
+      .slv_resp_t   (axi_a48_d64_i4_u0_resp_t),
+      .mst_req_t    (axi_a48_d64_i5_u0_req_t),
+      .mst_resp_t   (axi_a48_d64_i5_u0_resp_t),
+      .rule_t       (xbar_rule_48_t)
   ) i_soc_narrow_xbar (
       .clk_i                (clk_i),
       .rst_ni               (rst_ni),
@@ -344,12 +309,12 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   axi_a48_d64_i3_u0_resp_t soc_narrow_wide_iwc_rsp;
 
   axi_id_remap #(
-      .AxiSlvPortIdWidth(8),
+      .AxiSlvPortIdWidth(5),
       .AxiSlvPortMaxUniqIds(4),
       .AxiMaxTxnsPerId(4),
       .AxiMstPortIdWidth(3),
-      .slv_req_t(axi_a48_d64_i8_u0_req_t),
-      .slv_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .slv_req_t(axi_a48_d64_i5_u0_req_t),
+      .slv_resp_t(axi_a48_d64_i5_u0_resp_t),
       .mst_req_t(axi_a48_d64_i3_u0_req_t),
       .mst_resp_t(axi_a48_d64_i3_u0_resp_t)
   ) i_soc_narrow_wide_iwc (
@@ -519,18 +484,18 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   ////////////////////
   // S1 Quadrants 0 //
   ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_0_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_0_rsp;
+  axi_a48_d64_i5_u0_req_t  narrow_in_cut_0_req;
+  axi_a48_d64_i5_u0_resp_t narrow_in_cut_0_rsp;
 
   axi_multicut #(
       .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
+      .aw_chan_t(axi_a48_d64_i5_u0_aw_chan_t),
+      .w_chan_t(axi_a48_d64_i5_u0_w_chan_t),
+      .b_chan_t(axi_a48_d64_i5_u0_b_chan_t),
+      .ar_chan_t(axi_a48_d64_i5_u0_ar_chan_t),
+      .r_chan_t(axi_a48_d64_i5_u0_r_chan_t),
+      .req_t(axi_a48_d64_i5_u0_req_t),
+      .resp_t(axi_a48_d64_i5_u0_resp_t)
   ) i_narrow_in_cut_0 (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -559,18 +524,18 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_0]),
       .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_0])
   );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_0_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_0_rsp;
+  axi_a48_d512_i5_u0_req_t  wide_in_cut_0_req;
+  axi_a48_d512_i5_u0_resp_t wide_in_cut_0_rsp;
 
   axi_multicut #(
       .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
+      .aw_chan_t(axi_a48_d512_i5_u0_aw_chan_t),
+      .w_chan_t(axi_a48_d512_i5_u0_w_chan_t),
+      .b_chan_t(axi_a48_d512_i5_u0_b_chan_t),
+      .ar_chan_t(axi_a48_d512_i5_u0_ar_chan_t),
+      .r_chan_t(axi_a48_d512_i5_u0_r_chan_t),
+      .req_t(axi_a48_d512_i5_u0_req_t),
+      .resp_t(axi_a48_d512_i5_u0_resp_t)
   ) i_wide_in_cut_0 (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -619,738 +584,17 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_0_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 1 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_1_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_1_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_1 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_1]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_1]),
-      .mst_req_o(narrow_in_cut_1_req),
-      .mst_resp_i(narrow_in_cut_1_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_1_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_1_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_1_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_1_req),
-      .slv_resp_o(narrow_out_cut_1_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_1]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_1])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_1_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_1_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_1 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_1]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_1]),
-      .mst_req_o(wide_in_cut_1_req),
-      .mst_resp_i(wide_in_cut_1_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_1_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_1_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_1_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_1_req),
-      .slv_resp_o(wide_out_cut_1_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_1]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_1])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_1 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd1),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_1_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_1_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_1_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_1_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_1_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_1_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_1_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_1_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 2 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_2_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_2_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_2 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_2]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_2]),
-      .mst_req_o(narrow_in_cut_2_req),
-      .mst_resp_i(narrow_in_cut_2_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_2_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_2_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_2_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_2_req),
-      .slv_resp_o(narrow_out_cut_2_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_2]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_2])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_2_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_2_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_2 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_2]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_2]),
-      .mst_req_o(wide_in_cut_2_req),
-      .mst_resp_i(wide_in_cut_2_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_2_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_2_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_2_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_2_req),
-      .slv_resp_o(wide_out_cut_2_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_2]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_2])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_2 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd2),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_2_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_2_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_2_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_2_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_2_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_2_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_2_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_2_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 3 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_3_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_3_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_3 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_3]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_3]),
-      .mst_req_o(narrow_in_cut_3_req),
-      .mst_resp_i(narrow_in_cut_3_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_3_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_3_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_3_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_3_req),
-      .slv_resp_o(narrow_out_cut_3_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_3]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_3])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_3_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_3_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_3 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_3]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_3]),
-      .mst_req_o(wide_in_cut_3_req),
-      .mst_resp_i(wide_in_cut_3_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_3_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_3_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_3_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_3_req),
-      .slv_resp_o(wide_out_cut_3_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_3]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_3])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_3 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd3),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_3_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_3_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_3_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_3_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_3_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_3_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_3_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_3_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 4 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_4_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_4_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_4 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_4]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_4]),
-      .mst_req_o(narrow_in_cut_4_req),
-      .mst_resp_i(narrow_in_cut_4_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_4_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_4_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_4_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_4_req),
-      .slv_resp_o(narrow_out_cut_4_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_4]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_4])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_4_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_4_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_4 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_4]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_4]),
-      .mst_req_o(wide_in_cut_4_req),
-      .mst_resp_i(wide_in_cut_4_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_4_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_4_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_4_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_4_req),
-      .slv_resp_o(wide_out_cut_4_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_4]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_4])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_4 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd4),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_4_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_4_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_4_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_4_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_4_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_4_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_4_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_4_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 5 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_5_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_5_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_5 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_5]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_5]),
-      .mst_req_o(narrow_in_cut_5_req),
-      .mst_resp_i(narrow_in_cut_5_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_5_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_5_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_5_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_5_req),
-      .slv_resp_o(narrow_out_cut_5_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_5]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_5])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_5_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_5_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_5 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_5]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_5]),
-      .mst_req_o(wide_in_cut_5_req),
-      .mst_resp_i(wide_in_cut_5_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_5_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_5_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_5_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_5_req),
-      .slv_resp_o(wide_out_cut_5_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_5]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_5])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_5 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd5),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_5_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_5_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_5_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_5_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_5_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_5_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_5_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_5_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 6 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_6_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_6_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_6 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_6]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_6]),
-      .mst_req_o(narrow_in_cut_6_req),
-      .mst_resp_i(narrow_in_cut_6_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_6_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_6_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_6_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_6_req),
-      .slv_resp_o(narrow_out_cut_6_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_6]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_6])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_6_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_6_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_6 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_6]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_6]),
-      .mst_req_o(wide_in_cut_6_req),
-      .mst_resp_i(wide_in_cut_6_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_6_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_6_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_6_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_6_req),
-      .slv_resp_o(wide_out_cut_6_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_6]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_6])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_6 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd6),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_6_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_6_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_6_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_6_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_6_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_6_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_6_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_6_rsp)
-  );
-
-  ////////////////////
-  // S1 Quadrants 7 //
-  ////////////////////
-  axi_a48_d64_i8_u0_req_t  narrow_in_cut_7_req;
-  axi_a48_d64_i8_u0_resp_t narrow_in_cut_7_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .req_t(axi_a48_d64_i8_u0_req_t),
-      .resp_t(axi_a48_d64_i8_u0_resp_t)
-  ) i_narrow_in_cut_7 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_S1_QUADRANT_7]),
-      .slv_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_S1_QUADRANT_7]),
-      .mst_req_o(narrow_in_cut_7_req),
-      .mst_resp_i(narrow_in_cut_7_rsp)
-  );
-  axi_a48_d64_i4_u0_req_t  narrow_out_cut_7_req;
-  axi_a48_d64_i4_u0_resp_t narrow_out_cut_7_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d64_i4_u0_w_chan_t),
-      .b_chan_t(axi_a48_d64_i4_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d64_i4_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d64_i4_u0_r_chan_t),
-      .req_t(axi_a48_d64_i4_u0_req_t),
-      .resp_t(axi_a48_d64_i4_u0_resp_t)
-  ) i_narrow_out_cut_7_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(narrow_out_cut_7_req),
-      .slv_resp_o(narrow_out_cut_7_rsp),
-      .mst_req_o(soc_narrow_xbar_in_req[SOC_NARROW_XBAR_IN_S1_QUADRANT_7]),
-      .mst_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_S1_QUADRANT_7])
-  );
-  axi_a48_d512_i8_u0_req_t  wide_in_cut_7_req;
-  axi_a48_d512_i8_u0_resp_t wide_in_cut_7_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i8_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i8_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i8_u0_r_chan_t),
-      .req_t(axi_a48_d512_i8_u0_req_t),
-      .resp_t(axi_a48_d512_i8_u0_resp_t)
-  ) i_wide_in_cut_7 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(soc_wide_xbar_out_req[SOC_WIDE_XBAR_OUT_S1_QUADRANT_7]),
-      .slv_resp_o(soc_wide_xbar_out_rsp[SOC_WIDE_XBAR_OUT_S1_QUADRANT_7]),
-      .mst_req_o(wide_in_cut_7_req),
-      .mst_resp_i(wide_in_cut_7_rsp)
-  );
-  axi_a48_d512_i3_u0_req_t  wide_out_cut_7_req;
-  axi_a48_d512_i3_u0_resp_t wide_out_cut_7_rsp;
-
-  axi_multicut #(
-      .NoCuts(1),
-      .aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
-      .w_chan_t(axi_a48_d512_i3_u0_w_chan_t),
-      .b_chan_t(axi_a48_d512_i3_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d512_i3_u0_ar_chan_t),
-      .r_chan_t(axi_a48_d512_i3_u0_r_chan_t),
-      .req_t(axi_a48_d512_i3_u0_req_t),
-      .resp_t(axi_a48_d512_i3_u0_resp_t)
-  ) i_wide_out_cut_7_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .slv_req_i(wide_out_cut_7_req),
-      .slv_resp_o(wide_out_cut_7_rsp),
-      .mst_req_o(soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_S1_QUADRANT_7]),
-      .mst_resp_i(soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_S1_QUADRANT_7])
-  );
-
-  occamy_quadrant_s1 i_occamy_quadrant_s1_7 (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .test_mode_i(test_mode_i),
-      .tile_id_i(6'd7),
-      .debug_req_i('0),
-      .meip_i('0),
-      .mtip_i('0),
-      .msip_i('0),
-      .quadrant_narrow_out_req_o(narrow_out_cut_7_req),
-      .quadrant_narrow_out_rsp_i(narrow_out_cut_7_rsp),
-      .quadrant_narrow_in_req_i(narrow_in_cut_7_req),
-      .quadrant_narrow_in_rsp_o(narrow_in_cut_7_rsp),
-      .quadrant_wide_out_req_o(wide_out_cut_7_req),
-      .quadrant_wide_out_rsp_i(wide_out_cut_7_rsp),
-      .quadrant_wide_in_req_i(wide_in_cut_7_req),
-      .quadrant_wide_in_rsp_o(wide_in_cut_7_rsp)
-  );
-
 
 
   //////////
   // SPM //
   //////////
   axi_to_mem #(
-      .axi_req_t(axi_a48_d64_i8_u0_req_t),
-      .axi_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .axi_req_t(axi_a48_d64_i5_u0_req_t),
+      .axi_resp_t(axi_a48_d64_i5_u0_resp_t),
       .AddrWidth(17),
       .DataWidth(64),
-      .IdWidth(8),
+      .IdWidth(5),
       .NumBanks(1),
       .BufDepth(1)
   ) i_axi_to_mem (
@@ -1411,35 +655,21 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   // TODO(zarubaf): Truncate address.
   assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_0] = hbi_0_req_i;
   assign hbi_0_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_0];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_1] = hbi_1_req_i;
-  assign hbi_1_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_1];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_2] = hbi_2_req_i;
-  assign hbi_2_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_2];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_3] = hbi_3_req_i;
-  assign hbi_3_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_3];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_4] = hbi_4_req_i;
-  assign hbi_4_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_4];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_5] = hbi_5_req_i;
-  assign hbi_5_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_5];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_6] = hbi_6_req_i;
-  assign hbi_6_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_6];
-  assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_7] = hbi_7_req_i;
-  assign hbi_7_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_7];
 
   /////////////////
   // Peripherals //
   /////////////////
-  axi_a48_d64_i8_u0_req_t  axi_lite_cdc_req;
-  axi_a48_d64_i8_u0_resp_t axi_lite_cdc_rsp;
+  axi_a48_d64_i5_u0_req_t  axi_lite_cdc_req;
+  axi_a48_d64_i5_u0_resp_t axi_lite_cdc_rsp;
 
   axi_cdc #(
-      .aw_chan_t (axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t  (axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t  (axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t (axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t  (axi_a48_d64_i8_u0_r_chan_t),
-      .axi_req_t (axi_a48_d64_i8_u0_req_t),
-      .axi_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .aw_chan_t (axi_a48_d64_i5_u0_aw_chan_t),
+      .w_chan_t  (axi_a48_d64_i5_u0_w_chan_t),
+      .b_chan_t  (axi_a48_d64_i5_u0_b_chan_t),
+      .ar_chan_t (axi_a48_d64_i5_u0_ar_chan_t),
+      .r_chan_t  (axi_a48_d64_i5_u0_r_chan_t),
+      .axi_req_t (axi_a48_d64_i5_u0_req_t),
+      .axi_resp_t(axi_a48_d64_i5_u0_resp_t),
       .LogDepth  (2)
   ) i_axi_lite_cdc (
       .src_clk_i (clk_i),
@@ -1455,13 +685,13 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   axi_to_axi_lite #(
       .AxiAddrWidth(48),
       .AxiDataWidth(64),
-      .AxiIdWidth(8),
+      .AxiIdWidth(5),
       .AxiUserWidth(1),
       .AxiMaxWriteTxns(4),
       .AxiMaxReadTxns(4),
       .FallThrough(0),
-      .full_req_t(axi_a48_d64_i8_u0_req_t),
-      .full_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .full_req_t(axi_a48_d64_i5_u0_req_t),
+      .full_resp_t(axi_a48_d64_i5_u0_resp_t),
       .lite_req_t(axi_lite_a48_d64_req_t),
       .lite_resp_t(axi_lite_a48_d64_rsp_t)
   ) i_axi_to_axi_lite_periph_pc (
@@ -1476,17 +706,17 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
 
 
 
-  axi_a48_d64_i8_u0_req_t  periph_cdc_req;
-  axi_a48_d64_i8_u0_resp_t periph_cdc_rsp;
+  axi_a48_d64_i5_u0_req_t  periph_cdc_req;
+  axi_a48_d64_i5_u0_resp_t periph_cdc_rsp;
 
   axi_cdc #(
-      .aw_chan_t (axi_a48_d64_i8_u0_aw_chan_t),
-      .w_chan_t  (axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t  (axi_a48_d64_i8_u0_b_chan_t),
-      .ar_chan_t (axi_a48_d64_i8_u0_ar_chan_t),
-      .r_chan_t  (axi_a48_d64_i8_u0_r_chan_t),
-      .axi_req_t (axi_a48_d64_i8_u0_req_t),
-      .axi_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .aw_chan_t (axi_a48_d64_i5_u0_aw_chan_t),
+      .w_chan_t  (axi_a48_d64_i5_u0_w_chan_t),
+      .b_chan_t  (axi_a48_d64_i5_u0_b_chan_t),
+      .ar_chan_t (axi_a48_d64_i5_u0_ar_chan_t),
+      .r_chan_t  (axi_a48_d64_i5_u0_r_chan_t),
+      .axi_req_t (axi_a48_d64_i5_u0_req_t),
+      .axi_resp_t(axi_a48_d64_i5_u0_resp_t),
       .LogDepth  (2)
   ) i_periph_cdc (
       .src_clk_i (clk_i),
@@ -1499,25 +729,25 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .dst_resp_i(periph_cdc_rsp)
   );
 
-  axi_a48_d32_i8_u0_req_t  axi_to_axi_lite_dw_req;
-  axi_a48_d32_i8_u0_resp_t axi_to_axi_lite_dw_rsp;
+  axi_a48_d32_i5_u0_req_t  axi_to_axi_lite_dw_req;
+  axi_a48_d32_i5_u0_resp_t axi_to_axi_lite_dw_rsp;
 
   axi_dw_converter #(
       .AxiSlvPortDataWidth(64),
       .AxiMstPortDataWidth(32),
       .AxiAddrWidth(48),
-      .AxiIdWidth(8),
-      .aw_chan_t(axi_a48_d32_i8_u0_aw_chan_t),
-      .mst_w_chan_t(axi_a48_d32_i8_u0_w_chan_t),
-      .slv_w_chan_t(axi_a48_d64_i8_u0_w_chan_t),
-      .b_chan_t(axi_a48_d32_i8_u0_b_chan_t),
-      .ar_chan_t(axi_a48_d32_i8_u0_ar_chan_t),
-      .mst_r_chan_t(axi_a48_d32_i8_u0_r_chan_t),
-      .slv_r_chan_t(axi_a48_d64_i8_u0_r_chan_t),
-      .axi_mst_req_t(axi_a48_d32_i8_u0_req_t),
-      .axi_mst_resp_t(axi_a48_d32_i8_u0_resp_t),
-      .axi_slv_req_t(axi_a48_d64_i8_u0_req_t),
-      .axi_slv_resp_t(axi_a48_d64_i8_u0_resp_t)
+      .AxiIdWidth(5),
+      .aw_chan_t(axi_a48_d32_i5_u0_aw_chan_t),
+      .mst_w_chan_t(axi_a48_d32_i5_u0_w_chan_t),
+      .slv_w_chan_t(axi_a48_d64_i5_u0_w_chan_t),
+      .b_chan_t(axi_a48_d32_i5_u0_b_chan_t),
+      .ar_chan_t(axi_a48_d32_i5_u0_ar_chan_t),
+      .mst_r_chan_t(axi_a48_d32_i5_u0_r_chan_t),
+      .slv_r_chan_t(axi_a48_d64_i5_u0_r_chan_t),
+      .axi_mst_req_t(axi_a48_d32_i5_u0_req_t),
+      .axi_mst_resp_t(axi_a48_d32_i5_u0_resp_t),
+      .axi_slv_req_t(axi_a48_d64_i5_u0_req_t),
+      .axi_slv_resp_t(axi_a48_d64_i5_u0_resp_t)
   ) i_axi_to_axi_lite_dw (
       .clk_i(clk_periph_i),
       .rst_ni(rst_periph_ni),
@@ -1533,13 +763,13 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   axi_to_axi_lite #(
       .AxiAddrWidth(48),
       .AxiDataWidth(32),
-      .AxiIdWidth(8),
+      .AxiIdWidth(5),
       .AxiUserWidth(1),
       .AxiMaxWriteTxns(4),
       .AxiMaxReadTxns(4),
       .FallThrough(0),
-      .full_req_t(axi_a48_d32_i8_u0_req_t),
-      .full_resp_t(axi_a48_d32_i8_u0_resp_t),
+      .full_req_t(axi_a48_d32_i5_u0_req_t),
+      .full_resp_t(axi_a48_d32_i5_u0_resp_t),
       .lite_req_t(axi_lite_a48_d32_req_t),
       .lite_resp_t(axi_lite_a48_d32_rsp_t)
   ) i_axi_to_axi_lite_regbus_periph_pc (
