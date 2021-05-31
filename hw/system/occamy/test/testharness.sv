@@ -299,8 +299,11 @@ module testharness import occamy_pkg::*; (
     .hbm_7_rsp_i (hbm_channel_7_rsp),
     .hbi_0_req_i ('0),
     .hbi_0_rsp_o (),
+<<<<<<< HEAD
     .hbi_0_req_o (),
     .hbi_0_rsp_i ('0),
+=======
+>>>>>>> bootrom: loop manager core
     .pcie_axi_req_o (pcie_axi_req),
     .pcie_axi_rsp_i (pcie_axi_rsp),
     .pcie_axi_req_i ('0),
