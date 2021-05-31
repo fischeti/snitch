@@ -11,6 +11,11 @@ _start:
     la    a1, boot_data
     # trap manager core 0 in loop
     beq   a0, zero, exception
+    la    a1, device_tree
+    # trap manager core 0 in loop
+    beq   a0, zero, exception
+    # make sure one core is configured as hartid 0
+    addi  a0, a0, -1
     lw    t0, entry_addr
     # lwu   t0, entry_addr
     jalr  t0
