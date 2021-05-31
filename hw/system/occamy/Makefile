@@ -119,3 +119,11 @@ fpga:
 	${MAKE} -C fpga occamy_vcu128
 
 .PHONY: fpga
+
+simtrace: $(addprefix simtraces/vsim/,$(notdir $(shell ls logs/trace_hart_*.dasm | sed 's/\.dasm/\.txt/')))
+
+simtraces/vsim/%.txt: logs/%.dasm
+	mkdir -p $(dir $@)
+	spike-dasm < $< | ../../../util/gen_trace.py > $@
+
+.PHONY: simtrace
