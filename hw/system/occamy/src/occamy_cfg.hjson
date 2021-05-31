@@ -12,7 +12,7 @@
       address: 1879048192, // 0x70000000
       length: 131072, // 128 kiB
     },
-    nr_s1_quadrant: 8,
+    nr_s1_quadrant: 1,
     s1_quadrant: {
         nr_clusters: 4,
         // Disable for easier flow trials.
