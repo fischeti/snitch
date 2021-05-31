@@ -100,4 +100,10 @@ clean:
 	rm -rf ${VLT_BUILDDIR} Bender.lock .bender/
 	# work/
 
-.PHONY: clean vlt.build vsim.build all
+simtrace: $(addprefix simtraces/vsim/,$(notdir $(shell ls logs/trace_hart_*.dasm | sed 's/\.dasm/\.txt/')))
+
+simtraces/vsim/%.txt: logs/%.dasm
+	mkdir -p $(dir $@)
+	spike-dasm < $< | ../../../util/gen_trace.py > $@
+
+.PHONY: clean vlt.build vsim.build all simtrace
