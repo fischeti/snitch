@@ -19,6 +19,11 @@ _snrt_init_core_info:
     lw        a2, 12(a4) # start address of the TCDM
     lw        a3, 16(a4) # end address of the TCDM
     sub       a0, a0, t0
+    div       t3, a0, a1 # calculate cluster index
+    lui       t4, 0x40   # TCDM offset of each cluster
+    mul       t3, t3, t4 # TCDM offset of current cluster
+    add       a2, a2, t3 # start address of current cluster TCDM
+    add       a3, a3, t3 # end address of current cluster TCDM
     ret
 
 # Must leave a0 untouched.
