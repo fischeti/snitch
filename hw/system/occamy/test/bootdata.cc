@@ -10,7 +10,7 @@ namespace sim {
 const BootData BOOTDATA = {
     .boot_addr = 0x1000000,
     .core_count = 9,
-    .hartid_base = 0,
+    .hartid_base = 1,
     .tcdm_start = 0x100000,
     .tcdm_end = 0x120000,
 };
