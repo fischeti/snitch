@@ -7,22 +7,22 @@ Disassembly of section .text:
 01000000 <_start>:
  1000000:	f1402573          	csrr	a0,mhartid
  1000004:	00000297          	auipc	t0,0x0
- 1000008:	03428293          	addi	t0,t0,52 # 1000038 <exception>
+ 1000008:	03028293          	addi	t0,t0,48 # 1000034 <exception>
  100000c:	30529073          	csrw	mtvec,t0
  1000010:	00000597          	auipc	a1,0x0
- 1000014:	69058593          	addi	a1,a1,1680 # 10006a0 <boot_data>
- 1000018:	02050063          	beqz	a0,1000038 <exception>
+ 1000014:	68c58593          	addi	a1,a1,1676 # 100069c <boot_data>
+ 1000018:	00050e63          	beqz	a0,1000034 <exception>
  100001c:	00000597          	auipc	a1,0x0
  1000020:	02458593          	addi	a1,a1,36 # 1000040 <device_tree>
- 1000024:	00050a63          	beqz	a0,1000038 <exception>
- 1000028:	fff50513          	addi	a0,a0,-1
- 100002c:	00000297          	auipc	t0,0x0
- 1000030:	6702a283          	lw	t0,1648(t0) # 100069c <entry_addr>
- 1000034:	000280e7          	jalr	t0
+ 1000024:	00050863          	beqz	a0,1000034 <exception>
+ 1000028:	00000297          	auipc	t0,0x0
+ 100002c:	6702a283          	lw	t0,1648(t0) # 1000698 <entry_addr>
+ 1000030:	000280e7          	jalr	t0
 
-01000038 <exception>:
- 1000038:	10500073          	wfi
- 100003c:	ffdff06f          	j	1000038 <exception>
+01000034 <exception>:
+ 1000034:	10500073          	wfi
+ 1000038:	ffdff06f          	j	1000034 <exception>
+ 100003c:	00000013          	nop
 
 01000040 <device_tree>:
  1000040:	0dd0                	addi	a2,sp,724
@@ -74,7 +74,7 @@ Disassembly of section .text:
  10000aa:	1b00                	addi	s0,sp,432
  10000ac:	7465                	lui	s0,0xffff9
  10000ae:	2c68                	fld	fa0,216(s0)
- 10000b0:	6163636f          	jal	t1,10366c6 <boot_data+0x36026>
+ 10000b0:	6163636f          	jal	t1,10366c6 <boot_data+0x3602a>
  10000b4:	796d                	lui	s2,0xffffb
  10000b6:	642d                	lui	s0,0xb
  10000b8:	7665                	lui	a2,0xffff9
@@ -87,12 +87,12 @@ Disassembly of section .text:
  10000c6:	2600                	fld	fs0,8(a2)
  10000c8:	7465                	lui	s0,0xffff9
  10000ca:	2c68                	fld	fa0,216(s0)
- 10000cc:	6163636f          	jal	t1,10366e2 <boot_data+0x36042>
+ 10000cc:	6163636f          	jal	t1,10366e2 <boot_data+0x36046>
  10000d0:	796d                	lui	s2,0xffffb
  10000d2:	0000                	unimp
  10000d4:	0000                	unimp
  10000d6:	0100                	addi	s0,sp,128
- 10000d8:	736f6863          	bltu	t5,s6,1000808 <boot_data+0x168>
+ 10000d8:	736f6863          	bltu	t5,s6,1000808 <boot_data+0x16c>
  10000dc:	6e65                	lui	t3,0x19
  10000de:	0000                	unimp
  10000e0:	0000                	unimp
@@ -144,7 +144,7 @@ Disassembly of section .text:
  100013e:	0200                	addi	s0,sp,256
  1000140:	0000                	unimp
  1000142:	0100                	addi	s0,sp,128
- 1000144:	73757063          	bgeu	a0,s7,1000864 <boot_data+0x1c4>
+ 1000144:	73757063          	bgeu	a0,s7,1000864 <boot_data+0x1c8>
  1000148:	0000                	unimp
  100014a:	0000                	unimp
  100014c:	0000                	unimp
@@ -189,7 +189,7 @@ Disassembly of section .text:
  100019e:	0500                	addi	s0,sp,640
  10001a0:	0000                	unimp
  10001a2:	5b00                	lw	s0,48(a4)
- 10001a4:	79616b6f          	jal	s6,101693a <boot_data+0x1629a>
+ 10001a4:	79616b6f          	jal	s6,101693a <boot_data+0x1629e>
  10001a8:	0000                	unimp
  10001aa:	0000                	unimp
  10001ac:	0000                	unimp
@@ -258,7 +258,7 @@ Disassembly of section .text:
  1000230:	7272                	flw	ft4,60(sp)
  1000232:	7075                	c.lui	zero,0xffffd
  1000234:	2d74                	fld	fa3,216(a0)
- 1000236:	746e6f63          	bltu	t3,t1,1000994 <boot_data+0x2f4>
+ 1000236:	746e6f63          	bltu	t3,t1,1000994 <boot_data+0x2f8>
  100023a:	6f72                	flw	ft10,28(sp)
  100023c:	6c6c                	flw	fa1,92(s0)
  100023e:	7265                	lui	tp,0xffff9
@@ -372,7 +372,7 @@ Disassembly of section .text:
  1000326:	0800                	addi	s0,sp,16
  1000328:	0000                	unimp
  100032a:	d800                	sw	s0,48(s0)
- 100032c:	746e6f63          	bltu	t3,t1,1000a8a <boot_data+0x3ea>
+ 100032c:	746e6f63          	bltu	t3,t1,1000a8a <boot_data+0x3ee>
  1000330:	6f72                	flw	ft10,28(sp)
  1000332:	006c                	addi	a1,sp,12
  1000334:	0000                	unimp
@@ -457,7 +457,7 @@ Disassembly of section .text:
  10003e2:	0200                	addi	s0,sp,256
  10003e4:	0000                	unimp
  10003e6:	0100                	addi	s0,sp,128
- 10003e8:	6e696c63          	bltu	s2,t1,1000ae0 <boot_data+0x440>
+ 10003e8:	6e696c63          	bltu	s2,t1,1000ae0 <boot_data+0x444>
  10003ec:	4074                	lw	a3,68(s0)
  10003ee:	3034                	fld	fa3,96(s0)
  10003f0:	3030                	fld	fa2,96(s0)
@@ -472,7 +472,7 @@ Disassembly of section .text:
  1000402:	1b00                	addi	s0,sp,432
  1000404:	6972                	flw	fs2,28(sp)
  1000406:	2c766373          	csrrsi	t1,0x2c7,12
- 100040a:	6e696c63          	bltu	s2,t1,1000b02 <boot_data+0x462>
+ 100040a:	6e696c63          	bltu	s2,t1,1000b02 <boot_data+0x466>
  100040e:	3074                	fld	fa3,224(s0)
  1000410:	0000                	unimp
  1000412:	0000                	unimp
@@ -496,7 +496,7 @@ Disassembly of section .text:
  1000436:	0800                	addi	s0,sp,16
  1000438:	0000                	unimp
  100043a:	d800                	sw	s0,48(s0)
- 100043c:	746e6f63          	bltu	t3,t1,1000b9a <boot_data+0x4fa>
+ 100043c:	746e6f63          	bltu	t3,t1,1000b9a <boot_data+0x4fe>
  1000440:	6f72                	flw	ft10,28(sp)
  1000442:	006c                	addi	a1,sp,12
  1000444:	0000                	unimp
@@ -522,7 +522,7 @@ Disassembly of section .text:
  100046c:	7272                	flw	ft4,60(sp)
  100046e:	7075                	c.lui	zero,0xffffd
  1000470:	2d74                	fld	fa3,216(a0)
- 1000472:	746e6f63          	bltu	t3,t1,1000bd0 <boot_data+0x530>
+ 1000472:	746e6f63          	bltu	t3,t1,1000bd0 <boot_data+0x534>
  1000476:	6f72                	flw	ft10,28(sp)
  1000478:	6c6c                	flw	fa1,92(s0)
  100047a:	7265                	lui	tp,0xffff9
@@ -653,7 +653,7 @@ Disassembly of section .text:
  1000582:	6c65                	lui	s8,0x19
  1000584:	736c                	flw	fa1,100(a4)
  1000586:	6300                	flw	fs0,0(a4)
- 1000588:	61706d6f          	jal	s10,100739e <boot_data+0x6cfe>
+ 1000588:	61706d6f          	jal	s10,100739e <boot_data+0x6d02>
  100058c:	6974                	flw	fa3,84(a0)
  100058e:	6c62                	flw	fs8,24(sp)
  1000590:	0065                	c.nop	25
@@ -667,22 +667,22 @@ Disassembly of section .text:
  10005a2:	0068                	addi	a0,sp,12
  10005a4:	6564                	flw	fs1,76(a0)
  10005a6:	6976                	flw	fs2,92(sp)
- 10005a8:	745f6563          	bltu	t5,t0,1000cf2 <boot_data+0x652>
+ 10005a8:	745f6563          	bltu	t5,t0,1000cf2 <boot_data+0x656>
  10005ac:	7079                	c.lui	zero,0xffffe
  10005ae:	0065                	c.nop	25
  10005b0:	6572                	flw	fa0,28(sp)
- 10005b2:	69740067          	jr	1687(s0) # ffff8697 <boot_data+0xfeff7ff7>
+ 10005b2:	69740067          	jr	1687(s0) # ffff8697 <boot_data+0xfeff7ffb>
  10005b6:	656d                	lui	a0,0x1b
  10005b8:	6162                	flw	ft2,24(sp)
  10005ba:	662d6573          	csrrsi	a0,0x662,26
  10005be:	6572                	flw	fa0,28(sp)
  10005c0:	7571                	lui	a0,0xffffc
  10005c2:	6e65                	lui	t3,0x19
- 10005c4:	73007963          	bgeu	zero,a6,1000cf6 <boot_data+0x656>
+ 10005c4:	73007963          	bgeu	zero,a6,1000cf6 <boot_data+0x65a>
  10005c8:	6174                	flw	fa3,68(a0)
  10005ca:	7574                	flw	fa3,108(a0)
  10005cc:	6c630073          	0x6c630073
- 10005d0:	2d6b636f          	jal	t1,10b68a6 <boot_data+0xb6206>
+ 10005d0:	2d6b636f          	jal	t1,10b68a6 <boot_data+0xb620a>
  10005d4:	7266                	flw	ft4,120(sp)
  10005d6:	7165                	addi	sp,sp,-400
  10005d8:	6575                	lui	a0,0x1d
@@ -693,7 +693,7 @@ Disassembly of section .text:
  10005e4:	7369                	lui	t1,0xffffa
  10005e6:	0061                	c.nop	24
  10005e8:	6d6d                	lui	s10,0x1b
- 10005ea:	2d75                	jal	1000ca6 <boot_data+0x606>
+ 10005ea:	2d75                	jal	1000ca6 <boot_data+0x60a>
  10005ec:	7974                	flw	fa3,116(a0)
  10005ee:	6570                	flw	fa2,76(a0)
  10005f0:	7400                	flw	fs0,40(s0)
@@ -707,13 +707,13 @@ Disassembly of section .text:
  1000600:	7272                	flw	ft4,60(sp)
  1000602:	7075                	c.lui	zero,0xffffd
  1000604:	2d74                	fld	fa3,216(a0)
- 1000606:	6c6c6563          	bltu	s8,t1,1000cd0 <boot_data+0x630>
+ 1000606:	6c6c6563          	bltu	s8,t1,1000cd0 <boot_data+0x634>
  100060a:	6e690073          	0x6e690073
  100060e:	6574                	flw	fa3,76(a0)
  1000610:	7272                	flw	ft4,60(sp)
  1000612:	7075                	c.lui	zero,0xffffd
  1000614:	2d74                	fld	fa3,216(a0)
- 1000616:	746e6f63          	bltu	t3,t1,1000d74 <boot_data+0x6d4>
+ 1000616:	746e6f63          	bltu	t3,t1,1000d74 <boot_data+0x6d8>
  100061a:	6f72                	flw	ft10,28(sp)
  100061c:	6c6c                	flw	fa1,92(s0)
  100061e:	7265                	lui	tp,0xffff9
@@ -766,18 +766,16 @@ Disassembly of section .text:
  1000688:	7974                	flw	fa3,116(a0)
  100068a:	7200                	flw	fs0,32(a2)
  100068c:	7369                	lui	t1,0xffffa
- 100068e:	6e2c7663          	bgeu	s8,sp,1000d7a <boot_data+0x6da>
+ 100068e:	6e2c7663          	bgeu	s8,sp,1000d7a <boot_data+0x6de>
  1000692:	6564                	flw	fs1,76(a0)
  1000694:	0076                	c.slli	zero,0x1d
- 1000696:	0000                	unimp
- 1000698:	0000                	unimp
 	...
 
 Disassembly of section .bootdata:
 
-0100069c <entry_addr>:
- 100069c:	0038                	addi	a4,sp,8
- 100069e:	0100                	addi	s0,sp,128
+01000698 <entry_addr>:
+ 1000698:	0034                	addi	a3,sp,8
+ 100069a:	0100                	addi	s0,sp,128
 
 Disassembly of section .riscv.attributes:
 
@@ -793,7 +791,7 @@ Disassembly of section .riscv.attributes:
   14:	6932                	flw	fs2,12(sp)
   16:	7032                	flw	ft0,44(sp)
   18:	5f30                	lw	a2,120(a4)
-  1a:	326d                	jal	fffff9c4 <boot_data+0xfefff324>
+  1a:	326d                	jal	fffff9c4 <boot_data+0xfefff328>
   1c:	3070                	fld	fa2,224(s0)
   1e:	615f 7032 5f30      	0x5f307032615f
   24:	3266                	fld	ft4,120(sp)
