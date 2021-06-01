@@ -8,7 +8,7 @@ _start:
     # write exception vector
     la    t0, exception
     csrw  mtvec, t0
-    la    a1, device_tree
+    la    a1, boot_data
     # trap manager core 0 in loop
     beq   a0, zero, exception
     lw    t0, entry_addr
