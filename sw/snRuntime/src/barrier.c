@@ -8,3 +8,4 @@ extern void snrt_cluster_barrier();
 extern void snrt_global_barrier();
 
 void snrt_barrier() { _snrt_cluster_barrier(); }
+void snrt_quadrant_barrier() {_snrt_quadrant_barrier(); }
