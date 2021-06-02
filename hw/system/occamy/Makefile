@@ -11,18 +11,18 @@ ROOT        := ${MKFILE_DIR}../../..
 
 include $(ROOT)/util/Makefrag
 
-VLT_FLAGS 	  += -Wno-SYMRSVDWORD
+VLT_FLAGS	  += -Wno-SYMRSVDWORD
 REGGEN        ?= ${ROOT}/util/regtool.py
 
 QUESTA_64BIT	= -64
-VSIM      		= vsim ${QUESTA_64BIT}
-VLOG      		= vlog ${QUESTA_64BIT}
+VSIM			= vsim ${QUESTA_64BIT}
+VLOG			= vlog ${QUESTA_64BIT}
 
-VLOG_FLAGS 	  += -svinputport=compat
-VLOG_FLAGS 	  += -override_timescale 1ns/1ps
-VLOG_FLAGS 	  += -suppress 2583
-VLOG_FLAGS 	  += -suppress 13314
-VLOG_FLAGS 	  += ${QUESTA_64BIT}
+VLOG_FLAGS	  += -svinputport=compat
+VLOG_FLAGS	  += -override_timescale 1ns/1ps
+VLOG_FLAGS	  += -suppress 2583
+VLOG_FLAGS	  += -suppress 13314
+VLOG_FLAGS	  += ${QUESTA_64BIT}
 
 all: update-source update-plic update-socreg
 
@@ -119,11 +119,3 @@ fpga:
 	${MAKE} -C fpga occamy_vcu128
 
 .PHONY: fpga
-
-simtrace: $(addprefix simtraces/vsim/,$(notdir $(shell ls logs/trace_hart_*.dasm | sed 's/\.dasm/\.txt/')))
-
-simtraces/vsim/%.txt: logs/%.dasm
-	mkdir -p $(dir $@)
-	spike-dasm < $< | ../../../util/gen_trace.py > $@
-
-.PHONY: simtrace
