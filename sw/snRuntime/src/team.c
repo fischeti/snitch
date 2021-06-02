@@ -105,3 +105,17 @@ void snrt_bcast_recv(void *data, size_t len) {
     snrt_memcpy(data, mbox->ptr, len);
     snrt_barrier();
 }
+
+void _snrt_quadrant_barrier() {
+    // Atomic increment of barrier
+    uint32_t barrier = __atomic_add_fetch(&_snrt_team_current->root->barrier->quadrant_barrier, 1, __ATOMIC_RELAXED);
+    // Check if thread is the last one arriving at the barrier
+    if(barrier == _snrt_team_current->root->global_core_num) {
+        // Reset the barrier
+        _snrt_team_current->root->barrier->quadrant_barrier = 0;
+    }
+    else {
+        // Loop until barrier is reset
+        while(_snrt_team_current->root->barrier->quadrant_barrier);
+    }
+}

@@ -28,6 +28,7 @@ static inline size_t snrt_slice_len(snrt_slice_t s) {
 }
 
 extern void snrt_barrier();
+extern void snrt_quadrant_barrier();
 
 extern uint32_t __attribute__((pure)) snrt_hartid();
 extern uint32_t snrt_global_core_idx();
