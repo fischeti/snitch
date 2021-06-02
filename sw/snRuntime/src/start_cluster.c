@@ -21,6 +21,10 @@ struct snrt_cluster_bootdata {
     uint32_t hartid_base;
     uint32_t tcdm_start;
     uint32_t tcdm_end;
+    uint32_t global_mem_start;
+    uint32_t global_mem_end;
+    uint32_t global_core_count;
+    uint32_t global_cluster_count;
 };
 
 // Rudimentary string buffer for putc calls.
@@ -42,15 +46,13 @@ void _snrt_init_team(uint32_t cluster_core_id, uint32_t cluster_core_num,
     team->base.root = team;
     team->device_tree = (void *)bootdata;
     team->global_core_base_hartid = bootdata->hartid_base;
-    team->global_core_num = bootdata->core_count;
-    team->cluster_idx = 0;
-    team->cluster_num = 1;
+    team->global_core_num = bootdata->global_core_count;
+    team->cluster_idx = cluster_core_id/bootdata->core_count;
+    team->cluster_num = bootdata->global_cluster_count;
     team->cluster_core_base_hartid = bootdata->hartid_base;
     team->cluster_core_num = bootdata->core_count;
-    team->global_mem.start =
-        (void *)0x90000000;  // TODO: Read this from bootdata
-    team->global_mem.end =
-        (void *)0x100000000;  // TODO: Read this from bootdata
+    team->global_mem.start = (void*)bootdata->global_mem_start;
+    team->global_mem.end = (void*)bootdata->global_mem_end;
     team->cluster_mem.start = spm_start;
     team->cluster_mem.end = spm_end;
     team->barrier_reg_ptr = spm_end + 0x30;
