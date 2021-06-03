@@ -311,6 +311,7 @@ package occamy_pkg;
   /// Outputs of the `wide_xbar_quadrant_s1` crossbar.
   typedef enum int {
     WIDE_XBAR_QUADRANT_S1_OUT_TOP,
+    WIDE_XBAR_QUADRANT_S1_OUT_HBI,
     WIDE_XBAR_QUADRANT_S1_OUT_CLUSTER_0,
     WIDE_XBAR_QUADRANT_S1_OUT_CLUSTER_1,
     WIDE_XBAR_QUADRANT_S1_NUM_OUTPUTS
@@ -328,8 +329,7 @@ package occamy_pkg;
   AxiIdUsedSlvPorts:  3,
   AxiAddrWidth:       48,
   AxiDataWidth:       512,
-  NoAddrRules:        2
-};
+  NoAddrRules:        5
 
   typedef axi_a48_d512_i3_u0_req_t wide_xbar_quadrant_s1_in_req_t;
   typedef axi_a48_d512_i5_u0_req_t wide_xbar_quadrant_s1_out_req_t;
