@@ -149,3 +149,20 @@ void snrt_global_barrier() {
         while (prev_barrier_iteration == barrier_ptr->barrier_iteration);
     }
 }
+
+void new_cluster_barrier() {
+    // Atomic increment of barrier
+    volatile uint32_t barrier;
+    barrier = __atomic_add_fetch(&_snrt_team_current->root->cluster_barrier, 1, __ATOMIC_RELAXED);
+    // Check if thread is the last one arriving at the barrier
+    if(barrier == _snrt_team_current->root->cluster_core_num) {
+        // Reset the barrier
+        _snrt_team_current->root->cluster_barrier = 0;
+    }
+    else {
+        // Loop until barrier is reset
+        do {
+            barrier = _snrt_team_current->root->cluster_barrier;
+        } while(barrier);
+    }
+}
