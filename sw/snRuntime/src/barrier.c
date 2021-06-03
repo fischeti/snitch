@@ -5,6 +5,9 @@
 
 extern void _snrt_cluster_barrier();
 extern void _snrt_quadrant_barrier();
+extern void new_cluster_barrier();
 
-void snrt_barrier() { _snrt_cluster_barrier(); }
+/* void snrt_barrier() { _snrt_cluster_barrier(); } */
+void snrt_barrier() { new_cluster_barrier(); }
+
 void snrt_quadrant_barrier() {_snrt_quadrant_barrier(); }
