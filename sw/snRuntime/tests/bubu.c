@@ -6,20 +6,35 @@
 #include <stdio.h>
 
 int main(int core_id, int core_num, void *spm_start, void *spm_end) {
-    uint32_t num_cores = 18;
-    uint32_t actual_core = snrt_hartid();
-    for (uint32_t i = 1; i <= num_cores; i++) {
-        snrt_barrier();
-        if (i == actual_core) {
-            printf("Hello from core %i of %i\n", actual_core, num_cores);
+
+    for (uint32_t i = 0; i < snrt_global_core_num(); i++) {
+        snrt_quadrant_barrier();
+        if (i == snrt_hartid() - 1) {
+            printf("Core %d\n", snrt_hartid());
         }
     }
 
-
-    /* snrt_barrier(); */
-    /* if (snrt_hartid() == 3) { */
-    /*     printf("%d %d %d \n", snrt_hartid(), core_id, core_num); */
+    /* if (snrt_hartid() == 1) { */
+    /*     printf("Bubu %d %d\n", core_id, snrt_hartid()); */
+    /*     asm volatile ( */
+    /*                   "lui     t0, 0xa0000  \n" */
+    /*                   /\* "addi    t0, t0, 0x610 \n" *\/ */
+    /*                   "li      t1, 1   \n" */
+    /*                   /\* "sw      t1, 0(t0)  \n" *\/ */
+    /*                   /\* "lw      t1, 0(t0)\n" *\/ */
+    /*                   "amoadd.w  t2, t1, (t0)\n" */
+    /*                   "lw t1, 0(t0)\n" */
+    /*                   "addi t0, t1, 0\n" */
+    /*                   ); */
     /* } */
-    /* /\* printf("Hello World\n");*\/ */
+
+    /* uint32_t x = snrt_global_core_idx(); */
+    /* uint32_t y = snrt_global_core_num(); */
+    /* for (uint32_t i = 0; i < y; i++) { */
+    /*     snrt_quadrant_barrier(); */
+    /*     if (i == x) { */
+    /*         printf("Hello from core %i of %i\n", x, y); */
+    /*     } */
+    /* } */
     return 0;
 }
