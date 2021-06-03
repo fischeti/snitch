@@ -125,3 +125,13 @@ fpga:
 	${MAKE} -C fpga occamy_vcu128
 
 .PHONY: fpga
+
+
+runsim: bin/occamy_top.vsim
+	@sed -i 's/ -c /   /g' $<
+	@sed -i 's/;/;source scripts\/waves.tcl;/g' $<
+	exec $< sw/build/snRuntime/test-snRuntime-${APP}
+	@sed -i 's/   / -c /g' $<
+	@sed -i 's/;source scripts\/waves.tcl;/;/g' $<
+
+.PHONY: runsim
