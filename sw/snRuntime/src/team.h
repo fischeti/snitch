@@ -23,9 +23,9 @@ struct snrt_mailbox {
 
 struct snrt_barrier {
     /// Barrier value for synchronizing harts in cluster
-    uint32_t cluster_barrier;
+    volatile uint32_t cluster_barrier;
     /// Barrier value for synchronizing cluster in quadrants
-    uint32_t quadrant_barrier;
+    volatile uint32_t quadrant_barrier;
 };
 
 struct snrt_team_root {
@@ -41,5 +41,6 @@ struct snrt_team_root {
     snrt_slice_t cluster_mem;
     struct snrt_mailbox *global_mailbox;
     struct snrt_mailbox *cluster_mailbox;
+    volatile uint32_t cluster_barrier;
     struct snrt_barrier *barrier;
 };
