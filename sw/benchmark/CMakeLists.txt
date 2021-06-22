@@ -38,6 +38,12 @@ target_link_libraries(benchmark-matmul-ssr benchmark-matmul)
 target_link_libraries(benchmark-matmul-ssr_frep benchmark-matmul)
 target_link_libraries(benchmark-matmul-all benchmark-matmul)
 
+add_library(benchmark-conv2d-lib src/conv2d/conv2d.c)
+add_snitch_executable(benchmark-conv2d src/conv2d/main.c)
+target_link_libraries(benchmark-conv2d-lib benchmark ${SNITCH_RUNTIME})
+target_link_libraries(benchmark-conv2d benchmark-conv2d-lib)
+
+
 # Tests
 enable_testing()
 add_snitch_raw_test_rtl(benchmark-matmul-all benchmark-matmul-all)
