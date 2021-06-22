@@ -5,6 +5,8 @@
 
 #include "snrt.h"
 
+#include <stdio.h>
+
 __thread struct snrt_team *_snrt_team_current;
 const uint32_t _snrt_team_size __attribute__((section(".rodata"))) =
     sizeof(struct snrt_team_root);
@@ -147,6 +149,24 @@ void snrt_global_barrier() {
     } else {
         // Some threads have not reached the barrier --> Let's wait
         while (prev_barrier_iteration == barrier_ptr->barrier_iteration);
+    }
+}
+
+static uint32_t volatile global_barrier;
+static uint32_t volatile global_barrier_iteration;
+void snrt_global_barrier() {
+
+    // Remember previous iteration
+    uint32_t iteration_old = global_barrier_iteration;
+    uint32_t barrier = __atomic_add_fetch(&global_barrier, 1, __ATOMIC_RELAXED);
+
+    // Increment the barrier counter
+    if (barrier == snrt_global_core_num()) {
+        global_barrier = 0;
+        __atomic_add_fetch(&global_barrier_iteration, 1, __ATOMIC_RELAXED);
+    } else {
+        // Some threads have not reached the barrier --> Let's wait
+        while (iteration_old == global_barrier_iteration);
     }
 }
 
