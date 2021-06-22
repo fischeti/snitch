@@ -24,7 +24,7 @@ VLOG_FLAGS	  += -suppress 2583
 VLOG_FLAGS	  += -suppress 13314
 VLOG_FLAGS	  += ${QUESTA_64BIT}
 
-APP            = bubu
+APP            = conv2d
 
 all: update-source update-plic update-socreg
 
@@ -122,12 +122,19 @@ fpga:
 
 .PHONY: fpga
 
+run:
+	@cd banshee-sw/build && $(MAKE) --no-print-directory
+	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm  banshee-sw/build/benchmark/benchmark-$(APP)
+
+run-trace:
+	@mkdir -p logs/banshee/
+	@cd banshee-sw/build && $(MAKE) --no-print-directory
+	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
+	@spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
+	@awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces.txt
 
 runsim: bin/occamy_top.vsim
-	@sed -i 's/ -c /   /g' $<
-	@sed -i 's/;/;source scripts\/waves.tcl;/g' $<
-	exec $< sw/build/snRuntime/test-snRuntime-${APP}
-	@sed -i 's/   / -c /g' $<
-	@sed -i 's/;source scripts\/waves.tcl;/;/g' $<
+	@cd sw/build && $(MAKE) --no-print-directory
+	@exec $< sw/build/benchmark/benchmark-${APP}
 
-.PHONY: runsim
+.PHONY: runsim run run-trace
