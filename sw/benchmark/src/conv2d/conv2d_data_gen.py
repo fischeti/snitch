@@ -9,6 +9,8 @@ BEGIN_RE = re.compile(r'.*begin dump: (.+)')
 END_RE = re.compile(r'.*end dump')
 DATA_RE = re.compile(r'\-?[0-9]+\.[0-9]+')
 
+DOUBLE_RE = re.compile(r'[:=]{1}[a-f0-9]{16}]')
+
 f_result = '/scratch/fischeti/snitch/hw/system/occamy/logs/results.txt'
 
 def array_to_cstr(a):
@@ -20,18 +22,20 @@ def array_to_cstr(a):
   out = out[:-2] + '}'
   return out
 
-def write_header(ifmap, weights, ofmap):
+def write_header(ifmap, weights, ofmap, mem_layout):
 
-    N, CI, IH, IW = ifmap.shape
+    if mem_layout == 'chw':
+        N, CI, IH, IW = ifmap.shape
+    else:
+        N, IH, IW, CI = ifmap.shape
+
     CO, _, FH, FW = weights.shape
     OH, OW = IH - (FH - 1), IW - (FW - 1)
 
-    # strides = ssr_strides(ifmap, weights, ofmap)
-    # print(strides)
-
-    with open('../../include/conv2d.h', 'w') as fd:
+    with open('../../include/data.h', 'w') as fd:
         fd.write('#pragma once\n\n')
         fd.write('//#define BANSHEE\n\n')
+        fd.write(f'#define {mem_layout.upper()}\n\n')
         fd.write('struct layer_config {\n')
         fd.write(f'\tuint32_t n;\n')
         fd.write(f'\tuint32_t co;\n')
@@ -44,7 +48,7 @@ def write_header(ifmap, weights, ofmap):
         fd.write(f'\tuint32_t ow;\n')
         fd.write('};\n\n')
 
-        fd.write('struct layer_config layer = {\n')
+        fd.write('struct layer_config l = {\n')
         fd.write(f'\t.n = {N},\n')
         fd.write(f'\t.co = {CO},\n')
         fd.write(f'\t.ci = {CI},\n')
@@ -58,9 +62,9 @@ def write_header(ifmap, weights, ofmap):
 
         fd.write(f'double* ofmap_addr = (void*)0x80040000;\n\n')
 
-        fd.write(f'static double ifmap_dram[{N * CI * IH * IW}] = ' + array_to_cstr(ifmap) + ';\n')
-        fd.write(f'static double weights_dram[{CO * CI * FH * FW}] = ' + array_to_cstr(weights) + ';\n')
-        fd.write(f'static double ofmap_dram[{N * CO * OH * OW}] = ' + array_to_cstr(ofmap) + ';\n')
+        fd.write(f'static double ifmap_dram[{N * CI * IH * IW}] = ' + array_to_cstr(ifmap) + ';\n\n\n')
+        fd.write(f'static double weights_dram[{CO * CI * FH * FW}] = ' + array_to_cstr(weights) + ';\n\n\n')
+        fd.write(f'static double ofmap_dram[{N * CO * OH * OW}] = ' + array_to_cstr(ofmap) + ';\n\n\n')
 
 def conv2d(ifmap, weights):
     N, CI, IH, IW = ifmap.shape
@@ -79,12 +83,6 @@ def conv2d(ifmap, weights):
                                 ofmap[n][co][oh][ow] += ifmap[n][ci][oh+fh][ow+fw] * weights[co][ci][fh][fw]
 
     return ofmap
-
-def calc_offset(indexes, shape):
-    offset = 0
-    for i in range(len(indexes)):
-        offset += indexes[i] * np.prod(shape[i+1:], dtype=int)
-    return offset
 
 def parse_dump():
     data_parsing = False
@@ -105,7 +103,7 @@ def parse_dump():
 def main():
     n = 1
     co = 16
-    ci = 1
+    ci = 8
     fh = 3
     fw = 3
     ih = 8
@@ -121,7 +119,25 @@ def main():
     ofmap = conv2d(ifmap, weights)
 
     if '-gen' in sys.argv:
-        write_header(ifmap, weights, ofmap)
+        if '-chw' in sys.argv:
+            write_header(ifmap, weights, ofmap, 'chw')
+        else:
+            # convert from CHW to HWC format
+            ifmap = np.transpose(ifmap, (0, 2, 3, 1))
+            # weights = np.transpose(weights, (0, 2, 3, 1))
+            ofmap = np.transpose(ofmap, (0, 2, 3, 1))
+            write_header(ifmap, weights, ofmap, 'hwc')
+
+    if '-trace' in sys.argv:
+
+        fpu_ops = ['fmadd.d', 'fadd' 'fld', 'fsd', 'fsub.d', 'fsgnjx.d']
+
+        for line in sys.stdin:
+            if any(op in line for op in fpu_ops):
+                matches = re.finditer('([a-f0-9]{16})', line)
+                for i in matches:
+                    line = re.sub(i.group(1), str(struct.unpack('!d', bytes.fromhex(i.group(1)))[0]) , line)
+            print(line, end='')
 
     if '-check' in sys.argv:
         result = parse_dump()
