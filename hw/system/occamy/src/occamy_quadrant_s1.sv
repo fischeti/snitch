@@ -61,6 +61,7 @@ module occamy_quadrant_s1
   axi_xbar #(
       .Cfg          (WideXbarQuadrantS1Cfg),
       .Connectivity (30'b011111101111110111111011111110),
+      .AtopSupport  (0),
       .slv_aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
       .mst_aw_chan_t(axi_a48_d512_i5_u0_aw_chan_t),
       .w_chan_t     (axi_a48_d512_i3_u0_w_chan_t),
@@ -102,7 +103,8 @@ module occamy_quadrant_s1
 
   axi_xbar #(
       .Cfg          (NarrowXbarQuadrantS1Cfg),
-      .Connectivity (9'b011101110),
+      .Connectivity (25'b0111110111110111110111110),
+      .AtopSupport  (1),
       .slv_aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
       .mst_aw_chan_t(axi_a48_d64_i6_u0_aw_chan_t),
       .w_chan_t     (axi_a48_d64_i4_u0_w_chan_t),

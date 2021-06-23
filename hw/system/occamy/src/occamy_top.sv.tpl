@@ -65,9 +65,18 @@ module occamy_top
   output ${soc_regbus_periph_xbar.out_clk_mgr.req_type()} clk_mgr_req_o,
   input  ${soc_regbus_periph_xbar.out_clk_mgr.rsp_type()} clk_mgr_rsp_i,
 
+  /// HBI Config and APB Control
+  output ${soc_regbus_periph_xbar.out_hbi_cfg.req_type()} hbi_cfg_req_o,
+  input  ${soc_regbus_periph_xbar.out_hbi_cfg.rsp_type()} hbi_cfg_rsp_i,
+  output ${apb_hbi_ctl.req_type()} apb_hbi_ctl_req_o,
+  input  ${apb_hbi_ctl.rsp_type()} apb_hbi_ctl_rsp_i,
+
   /// PCIe/DDR Config
   output ${soc_regbus_periph_xbar.out_pcie_cfg.req_type()} pcie_cfg_req_o,
   input  ${soc_regbus_periph_xbar.out_pcie_cfg.rsp_type()} pcie_cfg_rsp_i,
+  /// Chip specific control registers
+  output ${soc_regbus_periph_xbar.out_chip_ctrl.req_type()} chip_ctrl_req_o,
+  input  ${soc_regbus_periph_xbar.out_chip_ctrl.rsp_type()} chip_ctrl_rsp_i,
 
   // "external interrupts from uncore - "programmable"
   input logic [3:0] ext_irq_i,
@@ -94,7 +103,6 @@ module occamy_top
   output ${soc_wide_xbar.in_pcie.rsp_type()} pcie_axi_rsp_o
 );
 
-  // TODO: Pull to top-level for system to influence configuration.
   occamy_soc_reg_pkg::occamy_soc_reg2hw_t soc_ctrl_out;
   occamy_soc_reg_pkg::occamy_soc_hw2reg_t soc_ctrl_in;
   always_comb soc_ctrl_in = '0;
@@ -163,9 +171,9 @@ module occamy_top
   );
 
   % for i in range(nr_s1_quadrants):
-  ////////////////////
-  // S1 Quadrants ${i} //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant ${i} //
+  ///////////////////
   <%
     cut_width = 1
     narrow_in = soc_narrow_xbar.__dict__["out_s1_quadrant_{}".format(i)].cut(context, cut_width, name="narrow_in_cut_{}".format(i))
@@ -207,20 +215,22 @@ module occamy_top
   //////////
   // SPM //
   //////////
+  <% narrow_spm_cdc = soc_narrow_xbar.out_spm.cdc(context, "clk_periph_i", "rst_periph_ni", "spm_cdc") %>
+
   axi_to_mem #(
-    .axi_req_t (${soc_narrow_xbar.out_spm.req_type()}),
-    .axi_resp_t (${soc_narrow_xbar.out_spm.rsp_type()}),
-    .AddrWidth (${util.clog2(spm_words) + util.clog2(soc_narrow_xbar.out_spm.dw//8)}),
-    .DataWidth (${soc_narrow_xbar.out_spm.dw}),
-    .IdWidth (${soc_narrow_xbar.out_spm.iw}),
+    .axi_req_t (${narrow_spm_cdc.req_type()}),
+    .axi_resp_t (${narrow_spm_cdc.rsp_type()}),
+    .AddrWidth (${util.clog2(spm_words) + util.clog2(narrow_spm_cdc.dw//8)}),
+    .DataWidth (${narrow_spm_cdc.dw}),
+    .IdWidth (${narrow_spm_cdc.iw}),
     .NumBanks (1),
     .BufDepth (1)
   ) i_axi_to_mem (
-    .clk_i (${soc_narrow_xbar.out_spm.clk}),
-    .rst_ni (${soc_narrow_xbar.out_spm.rst}),
+    .clk_i (${narrow_spm_cdc.clk}),
+    .rst_ni (${narrow_spm_cdc.rst}),
     .busy_o (),
-    .axi_req_i (${soc_narrow_xbar.out_spm.req_name()}),
-    .axi_resp_o (${soc_narrow_xbar.out_spm.rsp_name()}),
+    .axi_req_i (${narrow_spm_cdc.req_name()}),
+    .axi_resp_o (${narrow_spm_cdc.rsp_name()}),
     .mem_req_o (spm_req),
     .mem_gnt_i (spm_req), // always granted - it's an SPM.
     .mem_addr_o (spm_addr),
@@ -234,16 +244,16 @@ module occamy_top
 
   cc_ram_1p_adv #(
     .NumWords (${spm_words}),
-    .DataWidth (${soc_narrow_xbar.out_spm.dw}),
+    .DataWidth (${narrow_spm_cdc.dw}),
     .ByteWidth (8),
     .EnableInputPipeline (1'b1),
     .EnableOutputPipeline (1'b1)
   ) i_spm_cut (
-    .clk_i (${soc_narrow_xbar.out_spm.clk}),
-    .rst_ni (${soc_narrow_xbar.out_spm.rst}),
+    .clk_i (${narrow_spm_cdc.clk}),
+    .rst_ni (${narrow_spm_cdc.rst}),
     .req_i (spm_req),
     .we_i (spm_we),
-    .addr_i (spm_addr[${util.clog2(spm_words) + util.clog2(soc_narrow_xbar.out_spm.dw//8)-1}:${util.clog2(soc_narrow_xbar.out_spm.dw//8)}]),
+    .addr_i (spm_addr[${util.clog2(spm_words) + util.clog2(narrow_spm_cdc.dw//8)-1}:${util.clog2(narrow_spm_cdc.dw//8)}]),
     .wdata_i (spm_wdata),
     .be_i (spm_strb),
     .rdata_o (spm_rdata),
@@ -263,6 +273,11 @@ module occamy_top
   assign ${soc_wide_xbar.__dict__["in_hbi_{}".format(i)].req_name()} = hbi_${i}_req_i;
   assign hbi_${i}_rsp_o = ${soc_wide_xbar.__dict__["in_hbi_{}".format(i)].rsp_name()};
 % endfor
+
+  // APB port for HBI
+  <% soc_regbus_periph_xbar.out_hbi_ctl.to_apb(context, "apb_hbi_ctl", to=apb_hbi_ctl) %>
+  assign apb_hbi_ctl_req_o = ${apb_hbi_ctl.req_name()};
+  assign ${apb_hbi_ctl.rsp_name()} = apb_hbi_ctl_rsp_i;
 
   /////////////////
   // Peripherals //
@@ -455,6 +470,13 @@ module occamy_top
     .intr_ecc_uncorrectable_o (irq.ecc_uncorrectable),
     .intr_ecc_correctable_o (irq.ecc_correctable)
   );
+
+  //////////////////////
+  //   CHIP CONTROL   //
+  //////////////////////
+  // Contains NDA and chip specific information.
+  assign chip_ctrl_req_o = ${soc_regbus_periph_xbar.out_chip_ctrl.req_name()};
+  assign ${soc_regbus_periph_xbar.out_chip_ctrl.rsp_name()} = chip_ctrl_rsp_i;
 
   //////////////
   //   UART   //
