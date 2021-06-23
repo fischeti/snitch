@@ -24,7 +24,7 @@ VLOG_FLAGS	  += -suppress 2583
 VLOG_FLAGS	  += -suppress 13314
 VLOG_FLAGS	  += ${QUESTA_64BIT}
 
-APP            = conv2d
+APP				  = conv2d-hwc
 
 all: update-source update-plic update-socreg
 
