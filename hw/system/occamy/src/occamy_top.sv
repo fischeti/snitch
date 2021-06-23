@@ -65,9 +65,18 @@ module occamy_top
     output reg_a48_d32_req_t clk_mgr_req_o,
     input  reg_a48_d32_rsp_t clk_mgr_rsp_i,
 
+    /// HBI Config and APB Control
+    output reg_a48_d32_req_t hbi_cfg_req_o,
+    input  reg_a48_d32_rsp_t hbi_cfg_rsp_i,
+    output apb_a48_d32_req_t apb_hbi_ctl_req_o,
+    input  apb_a48_d32_rsp_t apb_hbi_ctl_rsp_i,
+
     /// PCIe/DDR Config
     output reg_a48_d32_req_t pcie_cfg_req_o,
     input  reg_a48_d32_rsp_t pcie_cfg_rsp_i,
+    /// Chip specific control registers
+    output reg_a48_d32_req_t chip_ctrl_req_o,
+    input  reg_a48_d32_rsp_t chip_ctrl_rsp_i,
 
     // "external interrupts from uncore - "programmable"
     input logic [3:0] ext_irq_i,
@@ -132,7 +141,6 @@ module occamy_top
     output axi_a48_d512_i3_u0_resp_t pcie_axi_rsp_o
 );
 
-  // TODO: Pull to top-level for system to influence configuration.
   occamy_soc_reg_pkg::occamy_soc_reg2hw_t soc_ctrl_out;
   occamy_soc_reg_pkg::occamy_soc_hw2reg_t soc_ctrl_in;
   always_comb soc_ctrl_in = '0;
@@ -196,8 +204,8 @@ module occamy_top
 
   reg_a48_d32_req_t [0:0] soc_regbus_periph_xbar_in_req;
   reg_a48_d32_rsp_t [0:0] soc_regbus_periph_xbar_in_rsp;
-  reg_a48_d32_req_t [9:0] soc_regbus_periph_xbar_out_req;
-  reg_a48_d32_rsp_t [9:0] soc_regbus_periph_xbar_out_rsp;
+  reg_a48_d32_req_t [12:0] soc_regbus_periph_xbar_out_req;
+  reg_a48_d32_rsp_t [12:0] soc_regbus_periph_xbar_out_rsp;
 
   logic [cf_math_pkg::idx_width(
 SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
@@ -220,7 +228,7 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
 
   addr_decode #(
       .NoIndices(SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS),
-      .NoRules(10),
+      .NoRules(13),
       .addr_t(logic [47:0]),
       .rule_t(xbar_rule_48_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
@@ -256,8 +264,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   soc_wide_xbar_out_resp_t [9:0] soc_wide_xbar_out_rsp;
 
   axi_xbar #(
-      .Cfg          (SocWideXbarCfg),
-      .Connectivity (40'b0111111111111111111111111111111111111110),
+      .Cfg(SocWideXbarCfg),
+      .Connectivity  ( 306'b011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110111111111111111110 ),
+      .AtopSupport(0),
       .slv_aw_chan_t(axi_a48_d512_i3_u0_aw_chan_t),
       .mst_aw_chan_t(axi_a48_d512_i5_u0_aw_chan_t),
       .w_chan_t     (axi_a48_d512_i3_u0_w_chan_t),
@@ -302,8 +311,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   soc_narrow_xbar_out_resp_t [4:0] soc_narrow_xbar_out_rsp;
 
   axi_xbar #(
-      .Cfg          (SocNarrowXbarCfg),
-      .Connectivity (10'b1111111110),
+      .Cfg(SocNarrowXbarCfg),
+      .Connectivity  ( 108'b111111111111111101111111111110111111111111011111111111101111111111110111111111111011111111111101111111111110 ),
+      .AtopSupport(1),
       .slv_aw_chan_t(axi_a48_d64_i4_u0_aw_chan_t),
       .mst_aw_chan_t(axi_a48_d64_i5_u0_aw_chan_t),
       .w_chan_t     (axi_a48_d64_i4_u0_w_chan_t),
@@ -511,11 +521,11 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .axi_resp_i(soc_narrow_xbar_in_rsp[SOC_NARROW_XBAR_IN_CVA6])
   );
 
-  ////////////////////
-  // S1 Quadrants 0 //
-  ////////////////////
-  axi_a48_d64_i5_u0_req_t  narrow_in_cut_0_req;
-  axi_a48_d64_i5_u0_resp_t narrow_in_cut_0_rsp;
+  ///////////////////
+  // S1 Quadrant 0 //
+  ///////////////////
+  axi_a48_d64_i8_u0_req_t  narrow_in_cut_0_req;
+  axi_a48_d64_i8_u0_resp_t narrow_in_cut_0_rsp;
 
   axi_multicut #(
       .NoCuts(1),
@@ -642,9 +652,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_0_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 1 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 1 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_1_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_1_rsp;
 
@@ -773,9 +783,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_1_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 2 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 2 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_2_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_2_rsp;
 
@@ -904,9 +914,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_2_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 3 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 3 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_3_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_3_rsp;
 
@@ -1035,9 +1045,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_3_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 4 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 4 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_4_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_4_rsp;
 
@@ -1166,9 +1176,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_4_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 5 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 5 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_5_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_5_rsp;
 
@@ -1297,9 +1307,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_5_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 6 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 6 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_6_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_6_rsp;
 
@@ -1428,9 +1438,9 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .quadrant_wide_in_rsp_o(wide_in_cut_6_rsp)
   );
 
-  ////////////////////
-  // S1 Quadrants 7 //
-  ////////////////////
+  ///////////////////
+  // S1 Quadrant 7 //
+  ///////////////////
   axi_a48_d64_i8_u0_req_t  narrow_in_cut_7_req;
   axi_a48_d64_i8_u0_resp_t narrow_in_cut_7_rsp;
 
@@ -1563,6 +1573,31 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   //////////
   // SPM //
   //////////
+  axi_a48_d64_i8_u0_req_t  spm_cdc_req;
+  axi_a48_d64_i8_u0_resp_t spm_cdc_rsp;
+
+  axi_cdc #(
+      .aw_chan_t (axi_a48_d64_i8_u0_aw_chan_t),
+      .w_chan_t  (axi_a48_d64_i8_u0_w_chan_t),
+      .b_chan_t  (axi_a48_d64_i8_u0_b_chan_t),
+      .ar_chan_t (axi_a48_d64_i8_u0_ar_chan_t),
+      .r_chan_t  (axi_a48_d64_i8_u0_r_chan_t),
+      .axi_req_t (axi_a48_d64_i8_u0_req_t),
+      .axi_resp_t(axi_a48_d64_i8_u0_resp_t),
+      .LogDepth  (2)
+  ) i_spm_cdc (
+      .src_clk_i (clk_i),
+      .src_rst_ni(rst_ni),
+      .src_req_i (soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_SPM]),
+      .src_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_SPM]),
+      .dst_clk_i (clk_periph_i),
+      .dst_rst_ni(rst_periph_ni),
+      .dst_req_o (spm_cdc_req),
+      .dst_resp_i(spm_cdc_rsp)
+  );
+
+
+
   axi_to_mem #(
       .axi_req_t(axi_a48_d64_i5_u0_req_t),
       .axi_resp_t(axi_a48_d64_i5_u0_resp_t),
@@ -1572,11 +1607,11 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .NumBanks(1),
       .BufDepth(1)
   ) i_axi_to_mem (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
+      .clk_i(clk_periph_i),
+      .rst_ni(rst_periph_ni),
       .busy_o(),
-      .axi_req_i(soc_narrow_xbar_out_req[SOC_NARROW_XBAR_OUT_SPM]),
-      .axi_resp_o(soc_narrow_xbar_out_rsp[SOC_NARROW_XBAR_OUT_SPM]),
+      .axi_req_i(spm_cdc_req),
+      .axi_resp_o(spm_cdc_rsp),
       .mem_req_o(spm_req),
       .mem_gnt_i(spm_req),  // always granted - it's an SPM.
       .mem_addr_o(spm_addr),
@@ -1595,8 +1630,8 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .EnableInputPipeline(1'b1),
       .EnableOutputPipeline(1'b1)
   ) i_spm_cut (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
+      .clk_i(clk_periph_i),
+      .rst_ni(rst_periph_ni),
       .req_i(spm_req),
       .we_i(spm_we),
       .addr_i(spm_addr[16:3]),
@@ -1629,6 +1664,27 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
   // TODO(zarubaf): Truncate address.
   assign soc_wide_xbar_in_req[SOC_WIDE_XBAR_IN_HBI_0] = hbi_0_req_i;
   assign hbi_0_rsp_o = soc_wide_xbar_in_rsp[SOC_WIDE_XBAR_IN_HBI_0];
+
+  // APB port for HBI
+  apb_a48_d32_req_t apb_hbi_ctl_req;
+  apb_a48_d32_rsp_t apb_hbi_ctl_rsp;
+
+  reg_to_apb #(
+      .reg_req_t(reg_a48_d32_req_t),
+      .reg_rsp_t(reg_a48_d32_rsp_t),
+      .apb_req_t(apb_a48_d32_req_t),
+      .apb_rsp_t(apb_a48_d32_rsp_t)
+  ) i_apb_hbi_ctl_pc (
+      .clk_i(clk_periph_i),
+      .rst_ni(rst_periph_ni),
+      .reg_req_i(soc_regbus_periph_xbar_out_req[SOC_REGBUS_PERIPH_XBAR_OUT_HBI_CTL]),
+      .reg_rsp_o(soc_regbus_periph_xbar_out_rsp[SOC_REGBUS_PERIPH_XBAR_OUT_HBI_CTL]),
+      .apb_req_o(apb_hbi_ctl_req),
+      .apb_rsp_i(apb_hbi_ctl_rsp)
+  );
+
+  assign apb_hbi_ctl_req_o = apb_hbi_ctl_req;
+  assign apb_hbi_ctl_rsp   = apb_hbi_ctl_rsp_i;
 
   /////////////////
   // Peripherals //
@@ -1971,6 +2027,13 @@ SOC_REGBUS_PERIPH_XBAR_NUM_OUTPUTS
       .intr_ecc_uncorrectable_o(irq.ecc_uncorrectable),
       .intr_ecc_correctable_o(irq.ecc_correctable)
   );
+
+  //////////////////////
+  //   CHIP CONTROL   //
+  //////////////////////
+  // Contains NDA and chip specific information.
+  assign chip_ctrl_req_o = soc_regbus_periph_xbar_out_req[SOC_REGBUS_PERIPH_XBAR_OUT_CHIP_CTRL];
+  assign soc_regbus_periph_xbar_out_rsp[SOC_REGBUS_PERIPH_XBAR_OUT_CHIP_CTRL] = chip_ctrl_rsp_i;
 
   //////////////
   //   UART   //

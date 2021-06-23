@@ -207,7 +207,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   } op_select_e;
   op_select_e opa_select, opb_select;
 
-  logic write_rd; // write desitnation this cycle
+  logic write_rd; // write destination this cycle
   logic uses_rd;
   typedef enum logic [2:0] {Consec, Alu, Exception, MRet, SRet, DRet} next_pc_e;
   next_pc_e next_pc;
@@ -1936,6 +1936,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         if (Xssr) begin
           acc_qreq_o.addr = SSR_CFG;
           acc_qvalid_o = valid_instr;
+          acc_register_rd = 1'b1;
         end else illegal_inst = 1'b1;
       end
       SCFGWI: begin
@@ -1951,6 +1952,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           acc_qreq_o.addr = SSR_CFG;
           opb_select = Reg;
           acc_qvalid_o = valid_instr;
+          acc_register_rd = 1'b1;
         end else illegal_inst = 1'b1;
       end
       SCFGW: begin
@@ -2600,5 +2602,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `ASSERT(InstructionInterfaceStable,
       (inst_valid_o && inst_ready_i && inst_cacheable_o) ##1 (inst_valid_o && $stable(inst_addr_o))
       |-> inst_ready_i && $stable(inst_data_i), clk_i, rst_i)
+
+  `ASSERT(RegWriteKnown, gpr_we |-> !$isunknown(gpr_wdata), clk_i, rst_i)
 
 endmodule
