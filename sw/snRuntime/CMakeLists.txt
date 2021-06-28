@@ -29,6 +29,7 @@ set(sources
     src/printf.c
     src/team.c
     src/ssr.c
+    src/perf_counter.c
 )
 
 # Generic Runtime (requiring bootloader/OS)

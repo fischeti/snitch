@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "snrt.h"
 #include "team.h"
+#include "snitch_cluster_peripheral_reg.h"
 
 extern const uint32_t _snrt_cluster_cluster_core_num;
 extern const uint32_t _snrt_cluster_cluster_base_hartid;
@@ -56,6 +57,7 @@ void _snrt_init_team(uint32_t cluster_core_id, uint32_t cluster_core_num,
     team->cluster_mem.start = spm_start;
     team->cluster_mem.end = spm_end;
     team->cluster_barrier = 0;
+    team->periph_reg = (void*)bootdata->tcdm_end;
 
     // Allocate memory for a global mailbox.
     team->global_mailbox = team->global_mem.start;
@@ -84,6 +86,8 @@ uint32_t _snrt_barrier_reg_ptr() {
         _snrt_team_current->root->device_tree;
     return bd->tcdm_end + 0x30;
 }
+
+
 
 extern uintptr_t volatile tohost, fromhost;
 
