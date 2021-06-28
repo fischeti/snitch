@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "snrt.h"
 #include "team.h"
+#include "snitch_cluster_peripheral_reg.h"
 
 extern const uint32_t _snrt_cluster_cluster_core_num;
 extern const uint32_t _snrt_cluster_cluster_base_hartid;
@@ -85,6 +86,8 @@ void _snrt_init_team(uint32_t cluster_core_id, uint32_t cluster_core_num,
 uint32_t _snrt_barrier_reg_ptr() {
     return _snrt_team_current->root->barrier_reg_ptr;
 }
+
+
 
 extern uintptr_t volatile tohost, fromhost;
 
