@@ -108,21 +108,6 @@ void snrt_bcast_recv(void *data, size_t len) {
     snrt_barrier();
 }
 
-void _snrt_quadrant_barrier() {
-
-    // Atomic increment of barrier
-    uint32_t barrier = __atomic_add_fetch(&_snrt_team_current->root->barrier->quadrant_barrier, 1, __ATOMIC_RELAXED);
-    // Check if thread is the last one arriving at the barrier
-    if(barrier == _snrt_team_current->root->global_core_num) {
-        // Reset the barrier
-        _snrt_team_current->root->barrier->quadrant_barrier = 0;
-    }
-    else {
-        // Loop until barrier is reset
-        while(_snrt_team_current->root->barrier->quadrant_barrier);
-    }
-}
-
 static uint32_t volatile global_barrier;
 static uint32_t volatile global_barrier_iteration;
 void snrt_global_barrier() {
@@ -141,19 +126,17 @@ void snrt_global_barrier() {
     }
 }
 
-void new_cluster_barrier() {
-    // Atomic increment of barrier
-    volatile uint32_t barrier;
-    barrier = __atomic_add_fetch(&_snrt_team_current->root->cluster_barrier, 1, __ATOMIC_RELAXED);
-    // Check if thread is the last one arriving at the barrier
-    if(barrier == _snrt_team_current->root->cluster_core_num) {
-        // Reset the barrier
+void snrt_cluster_barrier() {
+    // Remember previous iteration
+    uint32_t iteration_old = _snrt_team_current->root->cluster_barrier_iteration;
+    uint32_t barrier = __atomic_add_fetch(&_snrt_team_current->root->cluster_barrier, 1, __ATOMIC_RELAXED);
+
+    // Increment the barrier counter
+    if (barrier == snrt_cluster_core_num()) {
         _snrt_team_current->root->cluster_barrier = 0;
-    }
-    else {
-        // Loop until barrier is reset
-        do {
-            barrier = _snrt_team_current->root->cluster_barrier;
-        } while(barrier);
+        __atomic_add_fetch(&_snrt_team_current->root->cluster_barrier_iteration, 1, __ATOMIC_RELAXED);
+    } else {
+        // Some threads have not reached the barrier --> Let's wait
+        while (iteration_old == _snrt_team_current->root->cluster_barrier_iteration);
     }
 }

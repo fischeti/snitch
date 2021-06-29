@@ -28,7 +28,8 @@ static inline size_t snrt_slice_len(snrt_slice_t s) {
 }
 
 extern void snrt_barrier();
-extern void snrt_quadrant_barrier();
+extern void snrt_cluster_barrier();
+extern void snrt_global_barrier();
 extern uint32_t snrt_get_perf_counter(int cnt_id);
 extern void snrt_set_perf_counter(int cnt_id, int type);
 

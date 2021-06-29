@@ -3,12 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "snrt.h"
 
-extern void _snrt_cluster_barrier();
-extern void _snrt_quadrant_barrier();
-extern void new_cluster_barrier();
+/* extern void _snrt_cluster_barrier(); */
+/* extern void _snrt_quadrant_barrier(); */
 extern void snrt_global_barrier();
+extern void snrt_cluster_barrier();
 
 /* void snrt_barrier() { _snrt_cluster_barrier(); } */
 void snrt_barrier() { snrt_global_barrier(); }
-
-void snrt_quadrant_barrier() {_snrt_quadrant_barrier(); }
