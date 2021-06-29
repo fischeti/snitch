@@ -128,6 +128,7 @@ run:
 
 run-trace:
 	@mkdir -p logs/banshee/
+	@rm -f logs/banshee/*
 	@cd banshee-sw/build && $(MAKE) --no-print-directory
 	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
 	@spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
