@@ -21,3 +21,6 @@ void conv2d_ssr_frep(double* ifmap, double* ofmap, double* weights,
                      uint32_t CO, uint32_t CI, uint32_t OH, uint32_t OW, uint32_t IH, uint32_t IW, uint32_t FH, uint32_t FW);
 void conv2d_ssr_frep_reordered(double* ifmap, double* ofmap, double* weights,
                                uint32_t CO, uint32_t CI, uint32_t OH, uint32_t OW, uint32_t IH, uint32_t IW, uint32_t FH, uint32_t FW);
+
+void conv2d_hwc_single(double* ifmap, double* ofmap, double* weights,
+                       uint32_t CO, uint32_t CI, uint32_t OH, uint32_t OW, uint32_t IH, uint32_t IW, uint32_t FH, uint32_t FW);

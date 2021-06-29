@@ -26,16 +26,24 @@ def write_header(ifmap, weights, ofmap, mem_layout):
 
     if mem_layout == 'chw':
         N, CI, IH, IW = ifmap.shape
+        CO, _,FH, FW = weights.shape
+
     else:
         N, IH, IW, CI = ifmap.shape
+        CO, _, FH, FW = weights.shape
 
-    CO, _, FH, FW = weights.shape
+
     OH, OW = IH - (FH - 1), IW - (FW - 1)
 
     with open('../../include/data.h', 'w') as fd:
         fd.write('#pragma once\n\n')
         fd.write('//#define BANSHEE\n\n')
         fd.write(f'#define {mem_layout.upper()}\n\n')
+
+        fd.write(f'#define IFMAP_SIZE {N * CI * IH * IW}\n')
+        fd.write(f'#define WEIGHTS_SIZE {CO * CI * FH * FW}\n')
+        fd.write(f'#define OFMAP_SIZE {N * CO * OH * OW}\n\n')
+
         fd.write('struct layer_config {\n')
         fd.write(f'\tuint32_t n;\n')
         fd.write(f'\tuint32_t co;\n')
@@ -46,9 +54,8 @@ def write_header(ifmap, weights, ofmap, mem_layout):
         fd.write(f'\tuint32_t iw;\n')
         fd.write(f'\tuint32_t oh;\n')
         fd.write(f'\tuint32_t ow;\n')
-        fd.write('};\n\n')
 
-        fd.write('struct layer_config l = {\n')
+        fd.write('} l = {\n')
         fd.write(f'\t.n = {N},\n')
         fd.write(f'\t.co = {CO},\n')
         fd.write(f'\t.ci = {CI},\n')
@@ -103,11 +110,11 @@ def parse_dump():
 def main():
     n = 1
     co = 16
-    ci = 8
-    fh = 3
-    fw = 3
-    ih = 8
-    iw = 8
+    ci = 16
+    fh = 5
+    fw = 5
+    ih = 10
+    iw = 10
     oh = ih - (fh - 1)
     ow = iw - (fw - 1)
 
@@ -130,7 +137,7 @@ def main():
 
     if '-trace' in sys.argv:
 
-        fpu_ops = ['fmadd.d', 'fadd' 'fld', 'fsd', 'fsub.d', 'fsgnjx.d']
+        fpu_ops = ['fmadd', 'fadd' 'fld', 'fsd', 'fsub', 'fsgnjx', 'flt']
 
         for line in sys.stdin:
             if any(op in line for op in fpu_ops):
