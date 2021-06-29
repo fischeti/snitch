@@ -12,40 +12,43 @@
 
 int main() {
 
-    // Allocate buffer memory in the TCDM and generate input data.
-    double* ptr = snrt_cluster_memory().start;
-    double* ifmap = ptr;
-    ptr += l.ci * l.ih * l.iw;
-    double* weights = ptr;
-    ptr += l.co * l.ci * l.fh * l.fw;
-    double* ofmap = ptr;
-    ptr += l.co * l.oh * l.ow;
-    double* ofmap_GM = ptr;
+    uint32_t cluster_num = snrt_cluster_num();
+    uint32_t cluster_id = snrt_cluster_idx();
 
-    /* double* local_weights = weights + snrt_cluster_core_idx() * l.ci * l.fh * l.fw; */
-    /* double* local_ofmap = ofmap + snrt_cluster_core_idx() * l.oh * l.ow; */
+    struct cluster_memory_alloc {
+        double ifmap[l.ih][l.iw][l.ci];
+        double weights[l.co][l.ci][l.fh][l.fw];
+        double ofmap[l.oh][l.ow][l.co/cluster_num];
+        double ofmap_GM[l.oh][l.ow][l.co/cluster_num];
+    };
+
+    struct cluster_memory_alloc *mem = (void*)snrt_cluster_memory().start;
 
     if (snrt_is_dm_core()) {
-        memset(ofmap,0,sizeof(double)*l.co*l.oh*l.ow/snrt_cluster_num());
+        /* printf("ifmap %p, weights %p\n", &mem->ifmap, &mem->weights); */
 
-        snrt_dma_start_1d(ifmap,
+        memset(&mem->ofmap, 0, sizeof(double)*OFMAP_SIZE);
+
+        snrt_dma_start_1d(&mem->ifmap,
                           ifmap_dram,
-                          sizeof(double)*l.ci*l.ih*l.iw);
+                          sizeof(double)*IFMAP_SIZE);
 
-        snrt_dma_start_1d(weights,
-                          weights_dram + l.co * l.ci * l.fh * l.fw / snrt_cluster_num() * snrt_cluster_idx(),
-                          sizeof(double)*l.co*l.ci*l.fh*l.fw / snrt_cluster_num());
+        snrt_dma_start_1d(&mem->weights,
+                          weights_dram + WEIGHTS_SIZE / cluster_num * cluster_id,
+                          sizeof(double) * WEIGHTS_SIZE / cluster_num);
         snrt_dma_wait_all();
+        snrt_set_perf_counter(0, 1);
+        snrt_set_perf_counter(1, 2);
     }
 
 
     snrt_barrier();
 
     if (snrt_is_compute_core()) {
-        benchmark_get_cycle();
-        conv2d_hwc_ssr_frep(ifmap, ofmap, weights,
-                   l.co / snrt_cluster_num(), l.ci, l.oh, l.ow, l.ih, l.iw, l.fh, l.fw);
-        benchmark_get_cycle();
+        /* benchmark_get_cycle(); */
+        conv2d_hwc_ssr_frep((double*)&mem->ifmap, (double*)&mem->ofmap, (double*)&mem->weights,
+                            l.co / cluster_num, l.ci, l.oh, l.ow, l.ih, l.iw, l.fh, l.fw);
+        /* benchmark_get_cycle(); */
     }
     else {
         printf("waiting for end of computation\n");
@@ -53,30 +56,39 @@ int main() {
     snrt_barrier();
 
     if (snrt_is_dm_core()) {
-        snrt_dma_start_2d(ofmap_GM, /* dst */
-                          ofmap_dram + l.co / snrt_cluster_num() * snrt_cluster_idx(), /* src */
-                          sizeof(double)*l.co/snrt_cluster_num(), /* size */
-                          sizeof(double)*l.co/snrt_cluster_num(), /* dst_stride */
-                          sizeof(double)*l.co,         /* src_stride */
+        uint32_t tcdm_access = snrt_get_perf_counter(0);
+        uint32_t tcdm_congestion = snrt_get_perf_counter(1);
+        printf("TCDM Access/Congestion: %d/%d\n", tcdm_access, tcdm_congestion);
+
+        snrt_dma_start_2d(&mem->ofmap_GM, /* dst */
+                          ofmap_dram + l.co / cluster_num * cluster_id, /* src */
+                          sizeof(double) * l.co / cluster_num, /* size */
+                          sizeof(double) * l.co / cluster_num, /* dst_stride */
+                          sizeof(double) * l.co,         /* src_stride */
                           l.oh * l.ow /* repetitions */
                           );
         snrt_dma_wait_all();
 
         uint32_t errors = 0;
-        for (uint32_t i = 0; i < l.co * l.oh * l.ow / snrt_cluster_num(); i++) {
-            if(fabs(ofmap_GM[i] - ofmap[i]) > 0.001) {
-                errors++;
+
+        for (uint32_t co = 0; co < l.co/cluster_num; co++) {
+            for (uint32_t oh = 0; oh < l.oh; oh++) {
+                for (uint32_t ow = 0; ow < l.ow; ow++) {
+                    if(fabs(mem->ofmap_GM[oh][ow][co] - mem->ofmap[oh][ow][co]) > 0.001) {
+                        errors++;
+                        /* printf("OH %d OW %d CO %d\n", oh, ow, co); */
+                    }
+                }
             }
         }
         if (errors == 0) {
             printf("No Errors\n");
         } else {
-            printf("%d Errors\n");
+            printf("%d Errors\n", errors);
         }
 
     }
 
-    return 0;
     snrt_barrier();
 
     return 0;

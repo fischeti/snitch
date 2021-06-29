@@ -45,8 +45,8 @@ int main() {
 
     if (snrt_is_compute_core()) {
         benchmark_get_cycle();
-        conv2d_ssr_frep(ifmap, local_ofmap, local_weights,
-                        /* l.co */1, l.ci, l.oh, l.ow, l.ih, l.iw, l.fh, l.fw);
+        conv2d_ssr_frep_reordered(ifmap, local_ofmap, local_weights,
+                                  /* l.co */1, l.ci, l.oh, l.ow, l.ih, l.iw, l.fh, l.fw);
         benchmark_get_cycle();
     }
     else {
