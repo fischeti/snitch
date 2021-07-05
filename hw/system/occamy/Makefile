@@ -147,4 +147,8 @@ ifdef GUI
 	@sed -i 's/log -r \/\*; do scripts\/core0.tcl;/log -r \/\*;/' $^
 endif
 
-.PHONY: runsim run run-trace
+tracevis:
+	python scripts/tracevis.py sw/build/benchmark/benchmark-$(APP) logs/trace_hart_000*.txt > logs/trace.json
+
+
+.PHONY: runsim run run-trace tracevis

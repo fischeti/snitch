@@ -1,4 +1,7 @@
+onerror {resume}
+
 set cluster0 /tb_bin/i_dut/i_occamy/i_occamy_quadrant_s1_0/i_occamy_cluster_0/i_cluster
+set cluster1 /tb_bin/i_dut/i_occamy/i_occamy_quadrant_s1_0/i_occamy_cluster_1/i_cluster
 set snitch_cc_0 $cluster0/gen_core[0]/i_snitch_cc
 set cpu0 $snitch_cc_0/i_snitch
 set fpu0 $snitch_cc_0/gen_fpu/i_snitch_fp_ss
@@ -58,9 +61,31 @@ add wave -noupdate -expand -group {PERF COUNTER} $perf_counter/reg2hw.perf_count
 add wave -noupdate -expand -group {PERF COUNTER} $perf_counter/core_events_i
 add wave -noupdate -expand -group {PERF COUNTER} $perf_counter/tcdm_events_i
 
+add wave -noupdate -divider {DMA}
+add wave -noupdate -expand -group {DMA0} $cluster0/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/dma_perf_o
+add wave -noupdate -expand -group {DMA0} $cluster0/wide_in_req_i
+add wave -noupdate -expand -group {DMA0} $cluster0/wide_in_resp_o
+add wave -noupdate -expand -group {DMA0} $cluster0/wide_out_req_o
+add wave -noupdate -expand -group {DMA0} $cluster0/wide_out_resp_i
+add wave -noupdate -expand -group {DMA0} $cluster0/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/axi_dma_req_o
+add wave -noupdate -expand -group {DMA0} $cluster0/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/axi_dma_res_i
+add wave -noupdate -expand -group {DMA0} $cluster0/i_axi_to_mem_dma/axi_req_i
+add wave -noupdate -expand -group {DMA0} $cluster0/i_axi_to_mem_dma/axi_resp_o
 
-WaveRestoreCursors {{Cursor 1} {10685 ns} 1} {{Cursor 2} {10273 ns} 1} {{Cursor 3} {1560471 ps} 0}
-quietly wave cursor active 3
+
+add wave -noupdate -expand -group {DMA1} $cluster1/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/dma_perf_o
+add wave -noupdate -expand -group {DMA1} $cluster1/wide_in_req_i
+add wave -noupdate -expand -group {DMA1} $cluster1/wide_in_resp_o
+add wave -noupdate -expand -group {DMA1} $cluster1/wide_out_req_o
+add wave -noupdate -expand -group {DMA1} $cluster1/wide_out_resp_i
+add wave -noupdate -expand -group {DMA1} $cluster1/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/axi_dma_req_o
+add wave -noupdate -expand -group {DMA1} $cluster1/gen_core[8]/i_snitch_cc/gen_dma/i_axi_dma_tc_snitch_fe/axi_dma_res_i
+add wave -noupdate -expand -group {DMA1} $cluster1/i_axi_to_mem_dma/axi_req_i
+add wave -noupdate -expand -group {DMA1} $cluster1/i_axi_to_mem_dma/axi_resp_o
+
+
+# WaveRestoreCursors {{Cursor 1} {10685 ns} 1} {{Cursor 2} {10273 ns} 1} {{Cursor 3} {1560471 ps} 0}
+# quietly wave cursor active 3
 configure wave -namecolwidth 195
 configure wave -valuecolwidth 232
 configure wave -justifyvalue left
