@@ -132,7 +132,7 @@ run-trace:
 	@cd banshee-sw/build && $(MAKE) --no-print-directory
 	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
 	@spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
-	@python ../../../sw/benchmark/src/conv2d/conv2d_data_gen.py -trace < logs/banshee/traces.txt > logs/banshee/traces_visual.txt
+	@python scripts/banshee_traces.py < logs/banshee/traces.txt > logs/banshee/traces_visual.txt
 	@awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces_visual.txt
 
 runsim: bin/occamy_top.vsim
