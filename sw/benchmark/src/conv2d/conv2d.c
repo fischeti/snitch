@@ -335,6 +335,8 @@ void conv2d_hwc_ssr_frep(double* ifmap, double* ofmap, double* weights,
         }
     }
 
+
+    snrt_fpu_fence();
     benchmark_get_cycle();
 
 }
