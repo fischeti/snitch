@@ -56,6 +56,7 @@ void _snrt_init_team(uint32_t cluster_core_id, uint32_t cluster_core_num,
     team->cluster_mem.start = spm_start;
     team->cluster_mem.end = spm_end;
     team->cluster_barrier = 0;
+    team->cluster_barrier_iteration = 0;
     team->periph_reg = (void*)bootdata->tcdm_end;
 
     // Allocate memory for a global mailbox.

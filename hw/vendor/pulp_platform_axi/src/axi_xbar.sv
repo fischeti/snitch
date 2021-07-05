@@ -187,7 +187,7 @@ module axi_xbar #(
           .req_t      ( slv_req_t               ),
           .resp_t     ( slv_resp_t              ),
           .Resp       ( axi_pkg::RESP_DECERR    ),
-          .ATOPs      ( 1'b1                    ),
+          .ATOPs      ( AtopSupport             ),
           .MaxTrans   ( 1                       )
         ) i_axi_err_slv (
           .clk_i,
