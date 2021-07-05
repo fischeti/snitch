@@ -136,7 +136,15 @@ run-trace:
 	@awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces_visual.txt
 
 runsim: bin/occamy_top.vsim
+ifdef GUI
+	@sed -i 's/-c -ldflags/-ldflags/' $^
+	@sed -i 's/log -r \/\*;/log -r \/\*; do scripts\/core0.tcl;/' $^
+endif
 	@cd sw/build && $(MAKE) --no-print-directory
 	@exec $< sw/build/benchmark/benchmark-${APP}
+ifdef GUI
+	@sed -i 's/-ldflags/-c -ldflags/' $^
+	@sed -i 's/log -r \/\*; do scripts\/core0.tcl;/log -r \/\*;/' $^
+endif
 
 .PHONY: runsim run run-trace
