@@ -186,7 +186,7 @@ module axi_to_mem #(
         atop:   axi_req_i.aw.atop,
         id:     axi_req_i.aw.id,
         last:   (axi_req_i.aw.len == '0),
-        qos:    1, // (axi_req_i.aw.qos) prioritize writes,
+        qos:    axi_req_i.aw.qos,
         size:   axi_req_i.aw.size,
         write:  1'b1
       };
