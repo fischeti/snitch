@@ -52,7 +52,7 @@ int main()
         "vfadd.s %[p], %[k], %[l]"
         : [p] "=f"(p) : [k] "f"(k), [l] "f"(l));
     asm volatile(
-        "vfsub.s %[p], %[k], %[l]"
+        "vfsub.s %[o], %[k], %[l]"
         : [o] "=f"(o) : [k] "f"(k), [l] "f"(l));
 
     return 0;
