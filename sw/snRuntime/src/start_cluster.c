@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "snrt.h"
 #include "team.h"
-#include "snitch_cluster_peripheral_reg.h"
 
 extern const uint32_t _snrt_cluster_cluster_core_num;
 extern const uint32_t _snrt_cluster_cluster_base_hartid;
