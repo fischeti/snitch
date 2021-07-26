@@ -78,6 +78,9 @@ extern snrt_dma_txid_t snrt_dma_start_2d(void *dst, const void *src,
 extern void snrt_dma_wait(snrt_dma_txid_t tid);
 /// Block until all operation on the DMA ceases.
 extern void snrt_dma_wait_all();
+/// Memset implementation with DMA
+extern void snrt_dma_memset(void *ptr, int32_t value, uint32_t len);
+
 
 /// The different SSR data movers.
 enum snrt_ssr_dm {
