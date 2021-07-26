@@ -1953,7 +1953,8 @@ impl<'a> InstructionTranslator<'a> {
         let name = format!("{}\0", data.op);
         let name = name.as_ptr() as *const _;
         Ok(match data.op {
-            riscv::OpcodeRdRmRs1Rs2Rs3::FmaddS
+            riscv::OpcodeRdRmRs1Rs2Rs3::FmaddH
+            | riscv::OpcodeRdRmRs1Rs2Rs3::FmaddS
             | riscv::OpcodeRdRmRs1Rs2Rs3::FmaddD
             | riscv::OpcodeRdRmRs1Rs2Rs3::FmaddQ => LLVMBuildFAdd(
                 self.builder,
@@ -1961,7 +1962,8 @@ impl<'a> InstructionTranslator<'a> {
                 rs3,
                 name,
             ),
-            riscv::OpcodeRdRmRs1Rs2Rs3::FmsubS
+            riscv::OpcodeRdRmRs1Rs2Rs3::FmsubH
+            | riscv::OpcodeRdRmRs1Rs2Rs3::FmsubS
             | riscv::OpcodeRdRmRs1Rs2Rs3::FmsubD
             | riscv::OpcodeRdRmRs1Rs2Rs3::FmsubQ => LLVMBuildFSub(
                 self.builder,
@@ -1969,7 +1971,8 @@ impl<'a> InstructionTranslator<'a> {
                 rs3,
                 name,
             ),
-            riscv::OpcodeRdRmRs1Rs2Rs3::FnmaddS
+            riscv::OpcodeRdRmRs1Rs2Rs3::FnmaddH
+            | riscv::OpcodeRdRmRs1Rs2Rs3::FnmaddS
             | riscv::OpcodeRdRmRs1Rs2Rs3::FnmaddD
             | riscv::OpcodeRdRmRs1Rs2Rs3::FnmaddQ => LLVMBuildFAdd(
                 self.builder,
@@ -1981,7 +1984,8 @@ impl<'a> InstructionTranslator<'a> {
                 rs3,
                 name,
             ),
-            riscv::OpcodeRdRmRs1Rs2Rs3::FnmsubS
+            riscv::OpcodeRdRmRs1Rs2Rs3::FnmsubH
+            | riscv::OpcodeRdRmRs1Rs2Rs3::FnmsubS
             | riscv::OpcodeRdRmRs1Rs2Rs3::FnmsubD
             | riscv::OpcodeRdRmRs1Rs2Rs3::FnmsubQ => LLVMBuildFSub(
                 self.builder,
