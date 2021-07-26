@@ -24,6 +24,11 @@ VLOG_FLAGS	  += -suppress 2583
 VLOG_FLAGS	  += -suppress 13314
 VLOG_FLAGS	  += ${QUESTA_64BIT}
 
+APP				= im2col
+
+NUM_CLUSTERS	= 2
+NUM_CORES		= 9
+
 all: update-clint update-plic update-socreg update-source
 
 test: ${VSIM_SOURCES} ${TB_SRCS}
@@ -128,16 +133,16 @@ fpga:
 
 run:
 	@cd banshee-sw/build && $(MAKE) --no-print-directory
-	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm  banshee-sw/build/benchmark/benchmark-$(APP)
+	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm  banshee-sw/build/benchmark/benchmark-$(APP)
 
 run-trace:
 	@mkdir -p logs/banshee/
 	@rm -f logs/banshee/*
 	@cd banshee-sw/build && $(MAKE) --no-print-directory
-	banshee --num-clusters 2 --num-cores 9 --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
-	@spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
-	@python scripts/banshee_traces.py < logs/banshee/traces.txt > logs/banshee/traces_visual.txt
-	@awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces_visual.txt
+	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
+	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
+	python scripts/banshee_traces.py < logs/banshee/traces.txt > logs/banshee/traces_visual.txt
+	awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces_visual.txt
 
 runsim: bin/occamy_top.vsim
 ifdef GUI

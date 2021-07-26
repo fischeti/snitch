@@ -3,8 +3,10 @@ onerror {resume}
 set cluster0 /tb_bin/i_dut/i_occamy/i_occamy_quadrant_s1_0/i_occamy_cluster_0/i_cluster
 set cluster1 /tb_bin/i_dut/i_occamy/i_occamy_quadrant_s1_0/i_occamy_cluster_1/i_cluster
 set snitch_cc_0 $cluster0/gen_core[0]/i_snitch_cc
+set snitch_cc_1 $cluster1/gen_core[0]/i_snitch_cc
 set cpu0 $snitch_cc_0/i_snitch
 set fpu0 $snitch_cc_0/gen_fpu/i_snitch_fp_ss
+set fpu1 $snitch_cc_1/gen_fpu/i_snitch_fp_ss
 set ssr0 $snitch_cc_0/gen_ssrs/i_snitch_ssr_streamer/gen_ssrs[0]/i_ssr
 set ssr1 $snitch_cc_0/gen_ssrs/i_snitch_ssr_streamer/gen_ssrs[1]/i_ssr
 
@@ -33,6 +35,18 @@ add wave -noupdate -expand -group {FPU0 LSU} $fpu0/i_snitch_lsu/lsu_qready_o
 add wave -noupdate -expand -group {FPU0 LSU} $fpu0/i_snitch_lsu/lsu_qvalid_i
 add wave -noupdate -expand -group {FPU0 LSU} $fpu0/i_snitch_lsu/lsu_pready_i
 add wave -noupdate -expand -group {FPU0 LSU} $fpu0/i_snitch_lsu/lsu_pvalid_o
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/clk_i
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/rst_ni
+add wave -noupdate -expand -group FPU1 $fpu1/trace_port_o
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/op_i
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/in_valid_i
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/in_ready_o
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/out_valid_o
+add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/out_ready_i
+add wave -noupdate -expand -group {FPU1 LSU} $fpu1/i_snitch_lsu/lsu_qready_o
+add wave -noupdate -expand -group {FPU1 LSU} $fpu1/i_snitch_lsu/lsu_qvalid_i
+add wave -noupdate -expand -group {FPU1 LSU} $fpu1/i_snitch_lsu/lsu_pready_i
+add wave -noupdate -expand -group {FPU1 LSU} $fpu1/i_snitch_lsu/lsu_pvalid_o
 
 add wave -noupdate -divider SSR
 # add wave -noupdate -expand -group {SSR0} $ssr0/i_addr_gen/cfg_word_i
