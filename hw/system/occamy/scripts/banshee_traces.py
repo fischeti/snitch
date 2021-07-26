@@ -4,7 +4,7 @@ import struct
 
 
 def main():
-    fpu_ops = ['fmadd.d', 'fadd' 'fld', 'fsd', 'fsub.d', 'fsgnjx.d']
+    fpu_ops = ['fmadd', 'fmul', 'fadd', 'fld', 'fsd', 'fsub.d', 'fsgnjx.d']
 
     for line in sys.stdin:
         if any(op in line for op in fpu_ops):
