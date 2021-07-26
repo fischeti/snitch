@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 #include <snrt.h>
+#include <string.h>
 
 /// Initiate an asynchronous 1D DMA transfer with wide 64-bit pointers.
 snrt_dma_txid_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
@@ -150,4 +151,15 @@ void snrt_dma_wait_all() {
                (0b0101011 <<  0)   \n"
         "bne t0, zero, 1b \n" ::
             : "t0");
+}
+
+void snrt_dma_memset(void *ptr, int32_t value, uint32_t len) {
+
+    // set first 64bytes to value
+    memset(ptr, value, 64);
+
+    // DMA copy the the rest
+    snrt_dma_txid_t memset_txid = snrt_dma_start_2d(ptr, ptr, 64, 64, 0, len / 64);
+    snrt_dma_wait_all();
+
 }
