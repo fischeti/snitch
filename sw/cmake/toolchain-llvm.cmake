@@ -6,8 +6,8 @@ set(CMAKE_AR llvm-ar)
 set(CMAKE_STRIP llvm-strip)
 set(CMAKE_RANLIB llvm-ranlib)
 
-# Enable LTO
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION true)
+# LTO
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION false)
 
 # -march=rv32imafd -mabi=ilp32d
 add_compile_options(-mcpu=snitch -mcmodel=medany -ffast-math -fno-builtin-printf -fno-common)
