@@ -46,6 +46,7 @@ def write_header(ifmap, weights, ofmap, mem_layout):
         fd.write(f'#define CONV2D_OW {ow}\n')
         fd.write(f'#define CONV2D_FH {fh}\n')
         fd.write(f'#define CONV2D_FW {fw}\n')
+        fd.write(f'#define CONV2D_PAD {(fh-1)//2}\n')
         fd.write(f'#define SIZE_IFMAP {ci * ih * iw}\n')
         fd.write(f'#define SIZE_WEIGHTS {co * ci * fh * fw}\n\n')
 
@@ -68,8 +69,6 @@ def conv2d(ifmap, weights):
     conv2d.weight = nn.Parameter(torch.Tensor(weights), requires_grad=False)
     conv2d.bias = nn.Parameter(torch.zeros_like(conv2d.bias), requires_grad=False)
     ofmap = conv2d(ifmap)
-
-    print(ofmap.shape)
 
     return ofmap
 

@@ -35,7 +35,7 @@ int main () {
         .weights = (double*)weights_dram,
         .ofmap = (double*)result,
         .cluster2cluster = 0,
-        .pad = 1,
+        .pad = CONV2D_PAD,
         .TILE_CI = 32
     };
 
@@ -236,8 +236,6 @@ int main () {
                                                  &mem->result[write_buf][compute_id], 0, 0.0, setup_SSR);
 
                             }
-                            /* if (compute_id == 6) */
-                            /*     printf("finished kernel\n"); */
 
                         }
                         // Toggle read and write buffer
