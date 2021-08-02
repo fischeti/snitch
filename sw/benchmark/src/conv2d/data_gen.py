@@ -30,7 +30,7 @@ def write_header(ifmap, weights, ofmap, mem_layout):
         co, fh, fw, ci = weights.shape
         _, oh, ow, _ = ofmap.shape
 
-    with open('data.h', 'w') as fd:
+    with open('../../include/data.h', 'w') as fd:
         fd.write('//#define BANSHEE\n\n')
         fd.write(f'#define {mem_layout.upper()}\n\n')
 
@@ -75,11 +75,11 @@ def conv2d(ifmap, weights):
 
 def main():
     n = 1
-    co = 16
-    ci = 32
+    co = 32
+    ci = 128
     fh = 3
     fw = 3
-    ih = 3
+    ih = 4
     iw = 8
 
     ifmap = torch.randn(n, ci, ih, iw, requires_grad=False)
