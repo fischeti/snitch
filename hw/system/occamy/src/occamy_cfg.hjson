@@ -12,7 +12,7 @@
       size: 128,
       latency: 1
     },
-    nr_s1_quadrant: 8,
+    nr_s1_quadrant: 1,
     s1_quadrant: {
         nr_clusters: 4,
         // Disable for easier flow trials.

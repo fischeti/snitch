@@ -44,6 +44,7 @@ set(sources
     src/printf.c
     src/team.c
     src/ssr.c
+    src/perf_counter.c
 )
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)

@@ -11,18 +11,23 @@ ROOT        := ${MKFILE_DIR}../../..
 
 include $(ROOT)/util/Makefrag
 
-VLT_FLAGS 	  += -Wno-SYMRSVDWORD
+VLT_FLAGS	  += -Wno-SYMRSVDWORD
 REGGEN        ?= ${ROOT}/util/regtool.py
 
 QUESTA_64BIT	= -64
-VSIM      		= vsim ${QUESTA_64BIT}
-VLOG      		= vlog ${QUESTA_64BIT}
+VSIM			= vsim ${QUESTA_64BIT}
+VLOG			= vlog ${QUESTA_64BIT}
 
-VLOG_FLAGS 	  += -svinputport=compat
-VLOG_FLAGS 	  += -override_timescale 1ns/1ps
-VLOG_FLAGS 	  += -suppress 2583
-VLOG_FLAGS 	  += -suppress 13314
-VLOG_FLAGS 	  += ${QUESTA_64BIT}
+VLOG_FLAGS	  += -svinputport=compat
+VLOG_FLAGS	  += -override_timescale 1ns/1ps
+VLOG_FLAGS	  += -suppress 2583
+VLOG_FLAGS	  += -suppress 13314
+VLOG_FLAGS	  += ${QUESTA_64BIT}
+
+APP				= im2col
+
+NUM_CLUSTERS	= 2
+NUM_CORES		= 9
 
 all: update-source update-plic update-socreg
 
@@ -34,7 +39,7 @@ test: ${VSIM_SOURCES} ${TB_SRCS}
 # Prerequisites #
 #################
 test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom.ld
-	riscv64-unknown-elf-gcc -mabi=lp64d -march=rv64imafd -static -nostartfiles -Ttest/bootrom.ld $< -o test/bootrom.elf
+	riscv64-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Ttest/bootrom.ld $< -o test/bootrom.elf
 	riscv64-unknown-elf-objdump -D test/bootrom.elf > test/bootrom.dump
 	riscv64-unknown-elf-objcopy -O binary test/bootrom.elf test/bootrom.bin
 
@@ -119,3 +124,34 @@ fpga:
 	${MAKE} -C fpga occamy_vcu128
 
 .PHONY: fpga
+
+run:
+	@cd banshee-sw/build && $(MAKE) --no-print-directory
+	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm  banshee-sw/build/benchmark/benchmark-$(APP)
+
+run-trace:
+	@mkdir -p logs/banshee/
+	@rm -f logs/banshee/*
+	@cd banshee-sw/build && $(MAKE) --no-print-directory
+	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm --trace  banshee-sw/build/benchmark/benchmark-$(APP) > logs/banshee/traces.dasm
+	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
+	python scripts/banshee_traces.py < logs/banshee/traces.txt > logs/banshee/traces_visual.txt
+	awk '{print>"logs/banshee/trace_hart_"$$3".txt"}' logs/banshee/traces_visual.txt
+
+runsim: bin/occamy_top.vsim
+ifdef GUI
+	@sed -i 's/-c -ldflags/-ldflags/' $^
+	@sed -i 's/log -r \/\*;/log -r \/\*; do scripts\/core0.tcl;/' $^
+endif
+	@cd sw/build && $(MAKE) --no-print-directory
+	@exec $< sw/build/benchmark/benchmark-${APP}
+ifdef GUI
+	@sed -i 's/-ldflags/-c -ldflags/' $^
+	@sed -i 's/log -r \/\*; do scripts\/core0.tcl;/log -r \/\*;/' $^
+endif
+
+tracevis:
+	python scripts/tracevis.py sw/build/benchmark/benchmark-$(APP) logs/trace_hart_000*.txt > logs/trace.json
+
+
+.PHONY: runsim run run-trace tracevis

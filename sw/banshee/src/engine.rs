@@ -381,7 +381,10 @@ impl Engine {
         let instret: u64 = cpus.iter().map(|cpu| cpu.state.instret).sum();
 
         // Print some final statistics.
-        trace!("Final state hart {}: {:#?}", cpus[0].hartid, cpus[0].state);
+        for i in 0..cpus.len() {
+            trace!("Final state hart {}: {:#?}", cpus[i].hartid, cpus[i].state);
+        }
+        // trace!("Final state hart {}: {:#?}", cpus[0].hartid, cpus[0].state);
         // Fetch the return value {ret[31:1] = exit_code, ret[0] = exit_code_valid}
         let ret = self.exit_code.load(Ordering::SeqCst);
         if (ret & 0x1) == 0x1 {

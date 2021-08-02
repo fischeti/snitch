@@ -26,6 +26,10 @@ typedef struct snrt_slice {
 static inline size_t snrt_slice_len(snrt_slice_t s) { return s.end - s.start; }
 
 extern void snrt_barrier();
+extern void snrt_cluster_barrier();
+extern void snrt_global_barrier();
+extern uint32_t snrt_get_perf_counter(int cnt_id);
+extern void snrt_set_perf_counter(int cnt_id, int type);
 
 extern uint32_t __attribute__((pure)) snrt_hartid();
 extern uint32_t snrt_global_core_idx();
@@ -75,6 +79,9 @@ extern snrt_dma_txid_t snrt_dma_start_2d(void *dst, const void *src,
 extern void snrt_dma_wait(snrt_dma_txid_t tid);
 /// Block until all operation on the DMA ceases.
 extern void snrt_dma_wait_all();
+/// Memset implementation with DMA
+extern void snrt_dma_memset(void *ptr, int32_t value, uint32_t len);
+
 
 /// The different SSR data movers.
 enum snrt_ssr_dm {
