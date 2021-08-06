@@ -16,6 +16,8 @@ void conv2d_im2col_fp64(layer l) {
     uint32_t compute_num = snrt_cluster_compute_core_num();
     uint32_t compute_id = snrt_cluster_compute_core_idx();
 
+    const uint32_t cluster_per_quadrant = min(4, cluster_num);
+
     /* printf("cluster %d/%d core %d/%d\n", cluster_id, cluster_num, compute_id, compute_num); */
 
     typedef struct cluster_mem_alloc_struct {
@@ -82,7 +84,7 @@ void conv2d_im2col_fp64(layer l) {
                     // If cluster2cluster is enabled, each cluster starts with a different row,
                     // requires that OH is bigger than cluster_num (per quadrant at least)
                     /* uint32_t oh = (l.cluster2cluster)? (cluster_id + _oh) % l.OH : _oh; */
-                    uint32_t oh = ((cluster_num - 1) - cluster_id + _oh) % l.OH;
+                    uint32_t oh = ((cluster_per_quadrant - 1) - (cluster_id % cluster_per_quadrant) + _oh) % l.OH;
 
 
                     if (snrt_is_dm_core()) {
@@ -109,7 +111,7 @@ void conv2d_im2col_fp64(layer l) {
                         if (l.cluster2cluster) {
                             // All except last cluster need to wait until
                             // cluster synch flag is cleared
-                            if (cluster_id != cluster_num - 1) {
+                            if (cluster_id % cluster_per_quadrant != cluster_per_quadrant - 1) {
                                 while (mem->synch_flag[write_buf]);
                             }
                         }
@@ -118,7 +120,7 @@ void conv2d_im2col_fp64(layer l) {
                         // 1) cluster2cluster communication is not enabled
                         // 2) The first iteration, every cluster loads a row from main memory
                         // 3) The leading cluster always loads rows from main memory
-                        if (!l.cluster2cluster || _oh == 0 || cluster_id == 0) {
+                        if (!l.cluster2cluster || _oh == 0 || cluster_id % cluster_per_quadrant == 0) {
 
                             // Transfer in FH * (compute_num + FW - 1) pixels such that
                             // im2col transformation can be performed for every core
@@ -159,13 +161,18 @@ void conv2d_im2col_fp64(layer l) {
                             uint32_t src_cluster_id = cluster_id - 1;
                             cluster_mem_alloc *mem_src = (void*)mem - (cluster_id - src_cluster_id) * 0x00040000;
 
+                            // Wait until previous cluster has released data
+                            if (l.cluster2cluster && (cluster_id % cluster_per_quadrant) != 0) {
+                                while(mem_src->synch_flag[!write_buf] == 0);
+                            }
+
                             // Transfer in FH * (compute_num + FW - 1) pixels such that
                             // im2col transformation can be performed for every core
                             snrt_dma_txid_t ifmap_txid = snrt_dma_start_1d(&mem->ifmap[write_buf], &mem_src->ifmap[!write_buf], sizeof(double)*n_ifmap_pixel_read*l.TILE_CI*l.FH);
                             snrt_dma_wait_all();
 
                             // clear synch flag of src cluster
-                            if (l.cluster2cluster && cluster_id != 0) {
+                            if (l.cluster2cluster && (cluster_id % cluster_per_quadrant) != 0) {
                                 mem_src->synch_flag[!write_buf] = 0;
                             }
 
@@ -178,7 +185,7 @@ void conv2d_im2col_fp64(layer l) {
                         /*     printf("Cluster %d/%d clear flag[%d] %d\n", cluster_id, cluster_num, !write_buf, cluster_id - 1); */
                         /* } */
 
-                        // New data is "produced"
+                        // New data is produced
                         if (l.cluster2cluster) {
                         /* printf("Cluster %d/%d set flag[%d]\n", cluster_id, cluster_num, write_buf); */
                             mem->synch_flag[write_buf] = 1;
@@ -203,6 +210,8 @@ void conv2d_im2col_fp64(layer l) {
                         // Wait for im2col transform to end, and synchronize with compute cores
                         snrt_dma_wait_all();
                         snrt_cluster_barrier();
+
+                        printf("Cluster %d/%d is working on oh %d ow %d\n", cluster_id, cluster_num, oh, ow);
 
 
                         // Transfer back the output feature maps

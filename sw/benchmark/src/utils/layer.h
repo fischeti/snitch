@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 typedef enum{
-    CONV2D, GEMM
+    CONV2D, GEMM, POOLING, BATCH_NORM
 } LAYER_TYPE;
 
 typedef enum {
@@ -64,6 +64,10 @@ struct layer_struct
     uint32_t TILE_CI;
     uint32_t cluster2cluster;
     uint32_t im2col;
+
+    // BATCHNORM
+    double *gamma;
+    double *beta;
 
 };
 

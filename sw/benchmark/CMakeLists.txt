@@ -39,14 +39,14 @@ target_link_libraries(benchmark-matmul-ssr benchmark-matmul)
 target_link_libraries(benchmark-matmul-ssr_frep benchmark-matmul)
 target_link_libraries(benchmark-matmul-all benchmark-matmul)
 
-add_library(benchmark-conv2d-lib src/conv2d/conv2d.c)
-add_snitch_executable(benchmark-conv2d-hwc-tiled src/conv2d/main_hwc_tiled.c)
+# add_library(benchmark-conv2d-lib src/conv2d/conv2d.c)
+# add_snitch_executable(benchmark-conv2d-hwc-tiled src/conv2d/main_hwc_tiled.c)
 
-target_link_libraries(benchmark-conv2d-lib benchmark ${SNITCH_RUNTIME})
-target_link_libraries(benchmark-conv2d-hwc-tiled benchmark-conv2d-lib)
+# target_link_libraries(benchmark-conv2d-lib benchmark ${SNITCH_RUNTIME})
+# target_link_libraries(benchmark-conv2d-hwc-tiled benchmark-conv2d-lib)
 
-add_library(benchmark-utils src/utils/im2col.c src/utils/layer.c)
-target_link_libraries(benchmark-utils benchmark ${SNITCH_RUNTIME})
+# add_library(benchmark-utils src/utils/im2col.c src/utils/layer.c)
+# target_link_libraries(benchmark-utils benchmark ${SNITCH_RUNTIME})
 
 add_library(benchmark-gemm-lib src/gemm/gemm.c)
 add_snitch_executable(benchmark-gemm src/gemm/main.c)
@@ -57,10 +57,10 @@ target_link_libraries(benchmark-gemm-lib benchmark ${SNITCH_RUNTIME})
 target_link_libraries(benchmark-gemm benchmark-gemm-lib)
 target_link_libraries(benchmark-gemm-vec benchmark-gemm-lib)
 
-add_snitch_executable(benchmark-im2col src/conv2d/main_im2col.c)
-target_link_libraries(benchmark-im2col benchmark-utils benchmark-gemm-lib)
+# add_snitch_executable(benchmark-im2col src/conv2d/main_im2col.c)
+# target_link_libraries(benchmark-im2col benchmark-utils benchmark-gemm-lib)
 
-add_library(benchmark-layers src/layers/conv2d.c)
+add_library(benchmark-layers src/layers/conv2d.c src/layers/pooling.c src/layers/batchnorm.c)
 target_link_libraries(benchmark-layers benchmark ${SNITCH_RUNTIME} benchmark-gemm-lib)
 
 add_snitch_executable(benchmark-net src/layers/net.c)
