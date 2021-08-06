@@ -42,6 +42,7 @@ add_snitch_library(snRuntime-billywig src/start_billywig.S ${sources} src/ssr_v1
 add_snitch_library(snRuntime-bowtruckle src/start_bowtruckle.S ${sources} src/ssr_v1.c)
 add_snitch_library(snRuntime-lethifold src/start_lethifold.S ${sources} src/ssr_v1.c)
 add_snitch_library(snRuntime-thestral src/start_thestral.S ${sources} src/ssr_v1.c)
+add_snitch_library(snRuntime-occamy src/start_occamy.S src/start_occamy.c ${sources} src/ssr_v2.c)
 
 # Tests
 enable_testing()
