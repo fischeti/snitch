@@ -22,13 +22,12 @@ module clint import clint_reg_pkg::*; #(
     input  reg_req_t            reg_req_i,
     output reg_rsp_t            reg_rsp_o,
     input  logic                rtc_i,       // Real-time clock in (usually 32.768 kHz)
-    output logic [0:0] timer_irq_o, // Timer interrupts
-    output logic [0:0] ipi_o        // software interrupt (a.k.a inter-process-interrupt)
+    output logic [18:0] timer_irq_o, // Timer interrupts
+    output logic [18:0] ipi_o        // software interrupt (a.k.a inter-process-interrupt)
 );
 
     logic [63:0]               mtime_q;
-    logic [0:0][63:0] mtimecmp_q;
-    logic [0:0]       msip_q;
+    logic [18:0][63:0] mtimecmp_q;
     // increase the timer
     logic increase_timer;
 
@@ -50,7 +49,43 @@ module clint import clint_reg_pkg::*; #(
 
     assign mtime_q = {reg2hw.mtime_high.q, reg2hw.mtime_low.q};
     assign mtimecmp_q[0] = {reg2hw.mtimecmp_high0.q, reg2hw.mtimecmp_low0.q};
-    assign msip_q[0] = reg2hw.msip0.q;
+    assign ipi_o[0] = reg2hw.msip[0].q;
+    assign mtimecmp_q[1] = {reg2hw.mtimecmp_high1.q, reg2hw.mtimecmp_low1.q};
+    assign ipi_o[1] = reg2hw.msip[1].q;
+    assign mtimecmp_q[2] = {reg2hw.mtimecmp_high2.q, reg2hw.mtimecmp_low2.q};
+    assign ipi_o[2] = reg2hw.msip[2].q;
+    assign mtimecmp_q[3] = {reg2hw.mtimecmp_high3.q, reg2hw.mtimecmp_low3.q};
+    assign ipi_o[3] = reg2hw.msip[3].q;
+    assign mtimecmp_q[4] = {reg2hw.mtimecmp_high4.q, reg2hw.mtimecmp_low4.q};
+    assign ipi_o[4] = reg2hw.msip[4].q;
+    assign mtimecmp_q[5] = {reg2hw.mtimecmp_high5.q, reg2hw.mtimecmp_low5.q};
+    assign ipi_o[5] = reg2hw.msip[5].q;
+    assign mtimecmp_q[6] = {reg2hw.mtimecmp_high6.q, reg2hw.mtimecmp_low6.q};
+    assign ipi_o[6] = reg2hw.msip[6].q;
+    assign mtimecmp_q[7] = {reg2hw.mtimecmp_high7.q, reg2hw.mtimecmp_low7.q};
+    assign ipi_o[7] = reg2hw.msip[7].q;
+    assign mtimecmp_q[8] = {reg2hw.mtimecmp_high8.q, reg2hw.mtimecmp_low8.q};
+    assign ipi_o[8] = reg2hw.msip[8].q;
+    assign mtimecmp_q[9] = {reg2hw.mtimecmp_high9.q, reg2hw.mtimecmp_low9.q};
+    assign ipi_o[9] = reg2hw.msip[9].q;
+    assign mtimecmp_q[10] = {reg2hw.mtimecmp_high10.q, reg2hw.mtimecmp_low10.q};
+    assign ipi_o[10] = reg2hw.msip[10].q;
+    assign mtimecmp_q[11] = {reg2hw.mtimecmp_high11.q, reg2hw.mtimecmp_low11.q};
+    assign ipi_o[11] = reg2hw.msip[11].q;
+    assign mtimecmp_q[12] = {reg2hw.mtimecmp_high12.q, reg2hw.mtimecmp_low12.q};
+    assign ipi_o[12] = reg2hw.msip[12].q;
+    assign mtimecmp_q[13] = {reg2hw.mtimecmp_high13.q, reg2hw.mtimecmp_low13.q};
+    assign ipi_o[13] = reg2hw.msip[13].q;
+    assign mtimecmp_q[14] = {reg2hw.mtimecmp_high14.q, reg2hw.mtimecmp_low14.q};
+    assign ipi_o[14] = reg2hw.msip[14].q;
+    assign mtimecmp_q[15] = {reg2hw.mtimecmp_high15.q, reg2hw.mtimecmp_low15.q};
+    assign ipi_o[15] = reg2hw.msip[15].q;
+    assign mtimecmp_q[16] = {reg2hw.mtimecmp_high16.q, reg2hw.mtimecmp_low16.q};
+    assign ipi_o[16] = reg2hw.msip[16].q;
+    assign mtimecmp_q[17] = {reg2hw.mtimecmp_high17.q, reg2hw.mtimecmp_low17.q};
+    assign ipi_o[17] = reg2hw.msip[17].q;
+    assign mtimecmp_q[18] = {reg2hw.mtimecmp_high18.q, reg2hw.mtimecmp_low18.q};
+    assign ipi_o[18] = reg2hw.msip[18].q;
 
     assign {hw2reg.mtime_high.d, hw2reg.mtime_low.d} = mtime_q + 1;
     assign hw2reg.mtime_low.de = increase_timer;
@@ -66,7 +101,7 @@ module clint import clint_reg_pkg::*; #(
     // if interrupts are enabled and the MTIE bit is set in the mie register.
     always_comb begin : irq_gen
         // check that the mtime cmp register is set to a meaningful value
-        for (int unsigned i = 0; i < 1; i++) begin
+        for (int unsigned i = 0; i < 19; i++) begin
             if (mtime_q >= mtimecmp_q[i]) begin
                 timer_irq_o[i] = 1'b1;
             end else begin
@@ -89,7 +124,6 @@ module clint import clint_reg_pkg::*; #(
         .serial_o  (                )  // left open
     );
 
-    assign ipi_o = msip_q;
 
 endmodule
 
@@ -136,4 +170,3 @@ module clint_sync #(
   assign serial_o = reg_q[STAGES-1];
 
 endmodule
-
