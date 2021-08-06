@@ -32,7 +32,7 @@ int main () {
         .FH = CONV2D_FH,
         .FW = CONV2D_FW,
         .ifmap = (double*)ifmap_dram,
-        .weights = (double*)weights_dram,
+        .weights = (double*)weights0_dram,
         .ofmap = (double*)result,
         .cluster2cluster = 0,
         .pad = CONV2D_PAD,
