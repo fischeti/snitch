@@ -340,12 +340,8 @@ package occamy_pkg;
   AxiIdUsedSlvPorts:  3,
   AxiAddrWidth:       48,
   AxiDataWidth:       512,
-  NoAddrRules:        5
+  NoAddrRules:        3
 };
-
-  // AXI bus with 48 bit address, 512 bit data, 6 bit IDs, and 0 bit user data.
-  `AXI_TYPEDEF_ALL(axi_a48_d512_i6_u0, logic [47:0], logic [5:0], logic [511:0], logic [63:0],
-                   logic [0:0])
 
   typedef axi_a48_d512_i3_u0_req_t wide_xbar_quadrant_s1_in_req_t;
   typedef axi_a48_d512_i6_u0_req_t wide_xbar_quadrant_s1_out_req_t;
@@ -424,7 +420,7 @@ package occamy_pkg;
   // verilog_lint: waive parameter-name-style
   localparam int NARROW_XBAR_QUADRANT_S1_IW_IN = 4;
   // verilog_lint: waive parameter-name-style
-  localparam int NARROW_XBAR_QUADRANT_S1_IW_OUT = 7;
+  localparam int NARROW_XBAR_QUADRANT_S1_IW_OUT = 6;
 
   // APB bus with 48 bit address, 32 bit data.
   `APB_TYPEDEF_REQ_T(apb_a48_d32_req_t, logic [47:0], logic [31:0], logic [3:0])
@@ -432,6 +428,10 @@ package occamy_pkg;
 
   // AXI bus with 48 bit address, 64 bit data, 3 bit IDs, and 0 bit user data.
   `AXI_TYPEDEF_ALL(axi_a48_d64_i3_u0, logic [47:0], logic [2:0], logic [63:0], logic [7:0],
+                   logic [0:0])
+
+  // AXI bus with 48 bit address, 64 bit data, 1 bit IDs, and 0 bit user data.
+  `AXI_TYPEDEF_ALL(axi_a48_d64_i1_u0, logic [47:0], logic [0:0], logic [63:0], logic [7:0],
                    logic [0:0])
 
   // AXI bus with 48 bit address, 32 bit data, 5 bit IDs, and 0 bit user data.
