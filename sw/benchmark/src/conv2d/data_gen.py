@@ -79,7 +79,7 @@ def main():
     ci = 128
     fh = 3
     fw = 3
-    ih = 4
+    ih = 8
     iw = 8
 
     ifmap = torch.randn(n, ci, ih, iw, requires_grad=False)

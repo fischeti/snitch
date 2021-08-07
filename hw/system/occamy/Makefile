@@ -24,9 +24,9 @@ VLOG_FLAGS	  += -suppress 2583
 VLOG_FLAGS	  += -suppress 13314
 VLOG_FLAGS	  += ${QUESTA_64BIT}
 
-APP				= im2col
+APP				= net
 
-NUM_CLUSTERS	= 2
+NUM_CLUSTERS	= 1
 NUM_CORES		= 9
 
 all: update-source update-plic update-socreg
