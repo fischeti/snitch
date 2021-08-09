@@ -1,3 +1,7 @@
+# Copyright 2020 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
 set(CMAKE_C_COMPILER riscv32-unknown-elf-clang)
 set(CMAKE_CXX_COMPILER riscv32-unknown-elf-clang++)
 set(CMAKE_OBJCOPY llvm-objcopy)
@@ -7,7 +11,11 @@ set(CMAKE_STRIP llvm-strip)
 set(CMAKE_RANLIB llvm-ranlib)
 
 # LTO
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION false)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION true)
+set(CMAKE_C_COMPILER_AR "${CMAKE_AR}")
+set(CMAKE_CXX_COMPILER_AR "${CMAKE_AR}")
+set(CMAKE_C_COMPILER_RANLIB "${CMAKE_RANLIB}")
+set(CMAKE_CXX_COMPILER_RANLIB "${CMAKE_RANLIB}")
 
 ##
 ## Compile options

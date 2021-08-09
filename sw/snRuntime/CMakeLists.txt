@@ -15,16 +15,21 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 else()
     # Export package information to includer.
     set(SNRUNTIME_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
-    set(SNRUNTIME_INCLUDE_DIRS 
-        ${CMAKE_CURRENT_SOURCE_DIR}/include 
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor 
+    set(SNRUNTIME_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+    set(SNRUNTIME_INCLUDE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/vendor
         PARENT_SCOPE)
 endif()
 
-set(MEM_DRAM_ORIGIN "0x80000000")
-set(MEM_DRAM_SIZE "2147483648")
-set(MEM_L1_ORIGIN "0x100000")
-set(MEM_L1_SIZE "128K")
+# Default memory regions
+if(SNITCH_RUNTIME STREQUAL "snRuntime-cluster")
+    set(MEM_DRAM_ORIGIN "0x80000000" CACHE STRING "Base address of external memory")
+    set(MEM_DRAM_SIZE "0x80000000" CACHE STRING "Size of external memory")
+else()
+    set(MEM_DRAM_ORIGIN "0x80000000" CACHE STRING "Base address of external memory")
+    set(MEM_DRAM_SIZE "256M" CACHE STRING "Size of external memory")
+endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/link/common.ld.in common.ld @ONLY)
 set(LINKER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/common.ld CACHE PATH "")
 
@@ -33,6 +38,11 @@ set(LINKER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/common.ld CACHE PATH "")
 message(STATUS "Using common linker script: ${LINKER_SCRIPT}")
 # set(TARGET_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/link/banshee.ld" CACHE FILEPATH "Linker Script")
 # message(STATUS "Using target linker script: ${TARGET_LINKER_SCRIPT}")
+
+if(RUNTIME_TRACE)
+    # Enable runtime tracing
+    add_compile_definitions(__SNRT_USE_TRACE)
+endif()
 
 include_directories(include vendor)
 
@@ -44,7 +54,7 @@ set(sources
     src/printf.c
     src/team.c
     src/ssr.c
-    src/perf_counter.c
+    src/alloc.c
 )
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -92,6 +102,7 @@ add_snitch_test(simple tests/simple.c)
 add_snitch_test(varargs_1 tests/varargs_1.c)
 add_snitch_test(varargs_2 tests/varargs_2.c)
 add_snitch_test(barrier tests/barrier.c)
+add_snitch_test(lto tests/lto.c tests/lto_a.c)
 
 add_snitch_test_executable(dma_simple tests/dma_simple.c)
 add_snitch_test_executable(printf_simple tests/printf_simple.c)

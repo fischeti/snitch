@@ -8,12 +8,17 @@
 #include <stdio.h>
 
 __thread struct snrt_team *_snrt_team_current;
-const uint32_t _snrt_team_size __attribute__((section(".rodata"))) = sizeof(struct snrt_team_root);
+const uint32_t _snrt_team_size __attribute__((section(".rodata"))) =
+    sizeof(struct snrt_team_root);
 
 uint32_t __attribute__((pure)) snrt_hartid() {
     uint32_t hartid;
     asm("csrr %0, mhartid" : "=r"(hartid));
     return hartid;
+}
+
+struct snrt_team_root *snrt_current_team() {
+    return _snrt_team_current->root;
 }
 
 uint32_t snrt_global_core_idx() {

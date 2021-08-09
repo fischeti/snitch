@@ -32,6 +32,7 @@ extern uint32_t snrt_get_perf_counter(int cnt_id);
 extern void snrt_set_perf_counter(int cnt_id, int type);
 
 extern uint32_t __attribute__((pure)) snrt_hartid();
+struct snrt_team_root *snrt_current_team();
 extern uint32_t snrt_global_core_idx();
 extern uint32_t snrt_global_core_num();
 extern uint32_t snrt_global_compute_core_idx();
@@ -114,6 +115,9 @@ extern void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
 extern void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                            volatile void *ptr);
 extern void snrt_fpu_fence();
+
+/// alloc functions
+extern void *snrt_l1alloc(size_t size);
 
 #ifdef __cplusplus
 }
