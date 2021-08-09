@@ -32,7 +32,7 @@ def write_header(ifmap, weights, ofmap, layer_type):
         # weights = None
 
 
-    with open('../../include/data.h', 'w') as fd:
+    with open('/scratch/fischeti/snitch/sw/benchmark/include/data.h', 'w') as fd:
         fd.write('//#define BANSHEE\n\n')
 
         fd.write(f'#define IFMAP_SIZE {n * ci * ih * iw}\n')
@@ -52,16 +52,16 @@ def write_header(ifmap, weights, ofmap, layer_type):
         fd.write(f'#define SIZE_WEIGHTS {co * ci * fh * fw}\n\n')
 
 
-        fd.write(f'static double result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n')
-        fd.write(f'static double checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n')
-        fd.write(f'static double ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n')
+        fd.write(f'static double result[{oh}][{ow}][{co}] __attribute__((section(".dram")));\n\n')
+        fd.write(f'static double checksum[{oh}][{ow}] __attribute__((section(".dram"))) = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n')
+        fd.write(f'static double ifmap_dram[{ih}][{iw}][{ci}] __attribute__((section(".dram"))) = ' + array_to_cstr(ifmap) + ';\n\n\n')
         for i, w in enumerate(weights):
             fd.write(f'static double weights{i}_dram')
             for s in w.shape:
-                fd.write(f'[{s}]')
+                fd.write(f'[{s}] __attribute__((section(".dram")))')
             fd.write(f' = ' + array_to_cstr(w) + ';\n\n\n')
 
-        fd.write(f'static double ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n')
+        fd.write(f'static double ofmap_dram[{oh}][{ow}][{co}] __attribute__((section(".dram"))) = ' + array_to_cstr(ofmap) + ';\n\n\n')
 
 
 def conv2d(ifmap, weights):
@@ -102,8 +102,8 @@ def main():
     ci = 32
     fh = 3
     fw = 3
-    ih = 32
-    iw = 4
+    ih = 8
+    iw = 8
 
     ifmap = torch.randn(n, ci, ih, iw, requires_grad=False)
     weights = torch.randn(co, ci, fh, fw, requires_grad=False)

@@ -26,7 +26,7 @@ VLOG_FLAGS	  += ${QUESTA_64BIT}
 
 APP				= net
 
-NUM_CLUSTERS	= 1
+NUM_CLUSTERS	= 2
 NUM_CORES		= 9
 
 all: update-clint update-plic update-socreg update-source

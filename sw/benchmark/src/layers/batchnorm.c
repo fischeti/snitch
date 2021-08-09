@@ -66,7 +66,6 @@ void batchnorm_fp64(layer l) {
 
                 snrt_cluster_barrier();
 
-
                 if (!(oh == cluster_id && ci0 == 0)) {
 
                     if (l.TILE_CI == l.CI) {
@@ -94,11 +93,6 @@ void batchnorm_fp64(layer l) {
 
             if (snrt_is_compute_core()) {
 
-                register volatile double ft0 asm("ft0");
-                register volatile double ft1 asm("ft1");
-                register volatile double ft2 asm("ft2");
-                asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
-
                 // initially setup SSRs
                 if (oh == cluster_id && ci0 == 0) {
                     uint32_t ssr_b[2] = {l.OW, l.TILE_CI/compute_num};
@@ -112,14 +106,15 @@ void batchnorm_fp64(layer l) {
                 // Wait for data
                 snrt_cluster_barrier();
 
-                snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_2D, &ifmap[write_buf * ofmap_size/2 + compute_id]);
+                snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_2D, &ifmap[read_buf * ofmap_size/2 + compute_id]);
                 snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_2D, &ofmap[write_buf * ofmap_size/2 + compute_id]);
                 snrt_ssr_enable();
 
-
                 for (uint32_t ci1 = compute_id; ci1 < l.TILE_CI; ci1+=compute_num) {
-                    register volatile double g asm("ft3") = gamma[ci0 + ci1];
-                    register volatile double b asm("ft4") = beta[ci0 + ci1];
+                    // register volatile double g asm("ft3") = gamma[ci0 + ci1];
+                    // register volatile double b asm("ft4") = beta[ci0 + ci1];
+                    register volatile double g = gamma[ci0 + ci1];
+                    register volatile double b = beta[ci0 + ci1];
                     register volatile double result;
                     register const uint32_t rep asm("t0") = l.OW - 1;
 
@@ -136,16 +131,10 @@ void batchnorm_fp64(layer l) {
                 write_buf = !write_buf;
                 read_buf = !read_buf;
 
-                asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
-                asm volatile("nop\n");
-                asm volatile("nop\n");
-                asm volatile("nop\n");
-                asm volatile("nop\n");
-                asm volatile("nop\n");
-                asm volatile("nop\n");
-                asm volatile("nop\n");
 
 
+                snrt_fpu_fence();
+                __builtin_ssr_barrier(SNRT_SSR_DM1);
                 snrt_ssr_disable();
 
             }

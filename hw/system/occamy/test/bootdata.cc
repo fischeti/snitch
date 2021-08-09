@@ -15,8 +15,8 @@ const BootData BOOTDATA = {
     .tcdm_end = 0x10020000,
     .global_mem_start = 0x90000000,
     .global_mem_end = 0xC0000000,
-    .global_core_count = 36,
-    .global_cluster_count = 4,
+    .global_core_count = 18,
+    .global_cluster_count = 2,
 };
 
 }  // namespace sim

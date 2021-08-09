@@ -44,4 +44,7 @@ struct snrt_team_root {
     struct snrt_mailbox *global_mailbox;
     struct snrt_mailbox *cluster_mailbox;
     struct snrt_allocator allocator;
+    volatile uint32_t cluster_barrier;
+    volatile uint32_t cluster_barrier_iteration;
+    uint32_t *periph_reg;
 };
