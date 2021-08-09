@@ -60,7 +60,7 @@ target_link_libraries(benchmark-gemm-lib benchmark ${SNITCH_RUNTIME})
 # add_snitch_executable(benchmark-im2col src/conv2d/main_im2col.c)
 # target_link_libraries(benchmark-im2col benchmark-utils benchmark-gemm-lib)
 
-add_library(benchmark-layers src/layers/conv2d.c src/layers/pooling.c src/layers/batchnorm.c)
+add_library(benchmark-layers src/layers/pooling.c src/layers/batchnorm.c)
 target_link_libraries(benchmark-layers benchmark ${SNITCH_RUNTIME} benchmark-gemm-lib)
 
 add_snitch_executable(benchmark-net src/layers/net.c)
