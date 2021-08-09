@@ -70,6 +70,8 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_snitch_library(snRuntime-bowtruckle src/start_bowtruckle.S ${sources} src/ssr_v1.c)
     add_snitch_library(snRuntime-lethifold src/start_lethifold.S ${sources} src/ssr_v1.c)
     add_snitch_library(snRuntime-thestral src/start_thestral.S ${sources} src/ssr_v1.c)
+    add_snitch_library(snRuntime-occamy src/start_occamy.S src/start_occamy.c ${sources} src/ssr_v2.c)
+
 
 else()
     # snRuntime is added externally, only build required runtime

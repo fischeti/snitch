@@ -40,16 +40,12 @@ void batchnorm_fp64(layer l) {
 
             if (snrt_is_dm_core()) {
 
-                printf("Cluster %d/%d processes oh %d/%d ci %d/%d\n", cluster_id, cluster_num, oh, l.OH, ci0, l.CI);
-
                 // Load weights once in the beginning
                 if (oh == cluster_id && ci0 == 0) {
                     snrt_dma_start_1d(gamma, l.gamma, sizeof(double) * l.CI);
                     snrt_dma_start_1d(beta, l.beta, sizeof(double) * l.CI);
                     snrt_dma_wait_all();
                 }
-
-                printf("Loading ifmap %p from %p to %p\n", l.ifmap, &l.ifmap[oh * l.IW * l.CI], &ifmap[write_buf * ifmap_size/2]);
 
                 // Load some stuff
                 if (l.TILE_CI == l.CI) {

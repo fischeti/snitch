@@ -12,7 +12,7 @@ sources:
 # Level 0:
 - src/axi_id_remap.sv
 - src/axi_id_serialize.sv
-# - src/axi_to_mem.sv
+- src/axi_to_mem.sv
 - src/axi_to_mem_interleaved.sv
 - src/mem_to_axi_lite.sv
 # Level 1:

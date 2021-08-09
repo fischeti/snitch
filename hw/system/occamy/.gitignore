@@ -7,3 +7,4 @@ novas.*
 .vcs_checkpoint_shared_memory.*
 logs
 banshee-sw
+**/.idea
