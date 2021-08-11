@@ -132,10 +132,10 @@ fpga:
 
 .PHONY: fpga
 
-NUM_CLUSTERS			= 2
+NUM_CLUSTERS			= 1
 NUM_CORES				= 9
 
-APP 					= net-batchnorm
+APP 					= net-conv2d
 
 
 run-sim:
