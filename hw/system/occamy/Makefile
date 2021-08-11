@@ -52,7 +52,7 @@ update-source:
 		--cva6-sv src/occamy_cva6.sv.tpl
 	@$(ROOT)/util/occamygen.py --cfg src/occamy_cfg.hjson --graph addrmap.dot --outdir test \
 		--testharness-sv test/testharness.sv.tpl \
-		--bootdata ../../ip/snitch_cluster/test/bootdata.cc.tpl 
+		--bootdata ../../ip/snitch_cluster/test/bootdata.cc.tpl
 	@echo "[SOLDER]  CLINT"
 	@echo "[SOLDER]  Device Tree"
 	@$(ROOT)/util/occamygen.py --cfg src/occamy_cfg.hjson --outdir . --dts test/occamy.dts
@@ -126,3 +126,19 @@ fpga:
 	${MAKE} -C fpga occamy_vcu128
 
 .PHONY: fpga
+
+NUM_CLUSTERS			= 2
+NUM_CORES				= 9
+
+APP 					= net-batchnorm
+
+
+run-sim:
+	@mkdir -p logs/banshee/
+	@rm -f logs/banshee/*
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) --no-print-directory
+	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
+	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
+	python scripts/banshee_traces.py
+
+.PHONY: run-sim
