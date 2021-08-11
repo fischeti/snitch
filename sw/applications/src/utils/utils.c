@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "printf.h"
 #include "math.h"
+#include <string.h>
 
 void check_layer(layer l, double* checksum) {
 
@@ -99,4 +100,15 @@ void check_layer(layer l, double* checksum) {
 
         printf("%d/%d Errors\n", errors, total);
     }
+}
+
+void dma_memset(void *ptr, int32_t value, uint32_t len) {
+
+    // set first 64bytes to value
+    memset(ptr, value, 64);
+
+    // DMA copy the the rest
+    snrt_dma_txid_t memset_txid = snrt_dma_start_2d(ptr, ptr, 64, 64, 0, len / 64);
+    snrt_dma_wait_all();
+
 }
