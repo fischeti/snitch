@@ -25,7 +25,7 @@ add_library(kernels src/kernels/batchnorm.c src/kernels/maxpool.c src/kernels/ge
 add_library(layers src/layers/batchnorm_layer.c src/layers/maxpool_layer.c src/layers/conv2d_layer.c)
 add_library(utils src/utils/utils.c)
 target_link_libraries(kernels ${SNITCH_RUNTIME})
-target_link_libraries(layers ${SNITCH_RUNTIME})
+target_link_libraries(layers ${SNITCH_RUNTIME} kernels utils)
 target_link_libraries(utils ${SNITCH_RUNTIME})
 
 add_snitch_executable(net-batchnorm src/net_batchnorm.c)
