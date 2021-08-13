@@ -10,7 +10,7 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE toolchain-llvm)
 endif()
 if (NOT DEFINED SNITCH_RUNTIME)
-    set(SNITCH_RUNTIME snRuntime-occamy CACHE PATH "")
+    set(SNITCH_RUNTIME snRuntime-cluster CACHE PATH "")
 endif()
 set(SNITCH_SIMULATOR ${CMAKE_CURRENT_SOURCE_DIR}/../bin/occamy.sim CACHE PATH "")
 
