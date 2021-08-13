@@ -62,7 +62,7 @@ void maxpool_layer(layer l) {
                 snrt_dma_wait_all();
 
                 // synchronize with compute cores after loading data
-                snrt_cluster_barrier();
+                snrt_cluster_sw_barrier();
 
                 if (!(tile == cluster_id && ci == 0)) {
 
@@ -87,7 +87,7 @@ void maxpool_layer(layer l) {
             if (snrt_is_compute_core()) {
 
                 // wait for data to arrive
-                snrt_cluster_barrier();
+                snrt_cluster_sw_barrier();
 
                 maxpool_fp64(&ifmap[read_buf * ifmap_size/2 + compute_id],
                              &ofmap[write_buf * ofmap_size/2 + compute_id],
@@ -104,7 +104,7 @@ void maxpool_layer(layer l) {
         }
     }
 
-    snrt_cluster_barrier();
+    snrt_cluster_sw_barrier();
 
     if (snrt_is_dm_core()) {
 

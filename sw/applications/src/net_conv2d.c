@@ -26,7 +26,7 @@ int main() {
 
     check_layer(conv_l, (double*)checksum);
 
-    snrt_barrier();
+    snrt_global_barrier();
 
     return 0;
 }

@@ -242,7 +242,7 @@ void conv2d_layer(layer l) {
 
                         // Wait for im2col transform to end, and synchronize with compute cores
                         snrt_dma_wait_all();
-                        snrt_cluster_barrier();
+                        snrt_cluster_sw_barrier();
 
                         // Transfer back the output feature maps
                         if (oh_prev + ow_prev >= 0) {
@@ -269,7 +269,7 @@ void conv2d_layer(layer l) {
                     if (snrt_is_compute_core()) {
 
                         // Wait until DMA core has finished the im2col transform
-                        snrt_cluster_barrier();
+                        snrt_cluster_sw_barrier();
 
                         // Each core performs a matrix multiplication on the im2col buffer
                         // Of size (1 x FHxFWxCI) x (FHxFWxCI x 8), 8 represents CO and is the
@@ -301,7 +301,7 @@ void conv2d_layer(layer l) {
                 }
             }
 
-            snrt_cluster_barrier();
+            snrt_cluster_sw_barrier();
 
 
             // Transfer back last output tile
