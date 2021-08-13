@@ -65,7 +65,7 @@ void batchnorm_layer(layer l) {
 
                 snrt_dma_wait_all();
 
-                snrt_cluster_barrier();
+                snrt_cluster_sw_barrier();
 
                 if (!(oh == cluster_id && ci == 0)) {
 
@@ -95,7 +95,7 @@ void batchnorm_layer(layer l) {
             if (snrt_is_compute_core()) {
 
                 // Wait for data
-                snrt_cluster_barrier();
+                snrt_cluster_sw_barrier();
                 // initially setup SSRs
                 uint32_t setup_SSR = (oh == cluster_id && ci == 0);
 
@@ -115,7 +115,7 @@ void batchnorm_layer(layer l) {
         }
     }
 
-    snrt_cluster_barrier();
+    snrt_cluster_sw_barrier();
 
     // Store last tile back
     if (snrt_is_dm_core()) {
