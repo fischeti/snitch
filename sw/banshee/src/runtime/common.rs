@@ -24,7 +24,6 @@ pub struct Cpu<'a, 'b> {
     pub cluster_base_hartid: usize,
     /// The cluster's identifier.
     pub cluster_id: usize,
-    pub fp_mode: u32,
     /// The cluster's shared barrier state.
     pub barrier: &'b AtomicUsize,
     pub num_sleep: &'b AtomicUsize,
@@ -45,6 +44,7 @@ pub struct CpuState {
     pub instret: u64,
     pub ssrs: [SsrState; 2],
     pub ssr_enable: u32,
+    pub fpmode: u32,
     pub dma: DmaState,
     pub wfi: bool,
 }

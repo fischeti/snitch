@@ -327,9 +327,6 @@ impl Engine {
             (0..self.num_clusters).map(|_| tcdm.clone()).collect()
         };
 
-        // Allocate fp_mode.
-        let fp_mode: u32 = 0;
-
         // Allocate some barriers.
         let barriers: Vec<_> = (0..self.num_clusters)
             .map(|_| AtomicUsize::new(0))
@@ -353,7 +350,6 @@ impl Engine {
                     self.num_cores,
                     base_hartid,
                     j,
-                    fp_mode,
                     &barriers[j],
                     &num_sleep,
                     &wake_up,
@@ -500,7 +496,6 @@ impl<'a, 'b> Cpu<'a, 'b> {
         num_cores: usize,
         cluster_base_hartid: usize,
         cluster_id: usize,
-        fp_mode: u32,
         barrier: &'b AtomicUsize,
         num_sleep: &'b AtomicUsize,
         wake_up: &'b Vec<AtomicU64>,
@@ -513,7 +508,6 @@ impl<'a, 'b> Cpu<'a, 'b> {
             num_cores,
             cluster_base_hartid,
             cluster_id,
-            fp_mode,
             barrier,
             num_sleep,
             wake_up,
@@ -537,7 +531,6 @@ impl<'a, 'b> Cpu<'a, 'b> {
             } // cluster_base_hartid
             x if x == self.engine.config.address.cluster_num => self.engine.num_clusters as u32, // cluster_num
             x if x == self.engine.config.address.cluster_id => self.cluster_id as u32, // cluster_id
-            x if x == self.engine.config.address.fp_mode => self.fp_mode as u32, // fp_mode
             // TCDM
             x if x >= self.engine.config.memory.tcdm.start
                 && x < self.engine.config.memory.tcdm.end =>
@@ -588,7 +581,6 @@ impl<'a, 'b> Cpu<'a, 'b> {
             x if x == self.engine.config.address.cluster_base_hartid => (), // cluster_base_hartid
             x if x == self.engine.config.address.cluster_num => (), // cluster_num
             x if x == self.engine.config.address.cluster_id => (), // cluster_id
-            x if x == self.engine.config.address.fp_mode => (), // fp_mode
             x if x == self.engine.config.address.uart => {
                 let mut buffer = self.engine.putchar_buffer.lock().unwrap();
                 let buffer = buffer.entry(self.hartid).or_default();
@@ -677,6 +669,7 @@ impl<'a, 'b> Cpu<'a, 'b> {
             0xB02 => self.state.instret as u32,       // csr_minstret
             0xB82 => (self.state.instret >> 32) as u32, // csr_minstreth
             0xF14 => self.hartid as u32,              // mhartid
+            0x7c1 => self.state.fpmode as u32,              // fpmode
             _ => 0,
         }
     }
@@ -685,6 +678,7 @@ impl<'a, 'b> Cpu<'a, 'b> {
         trace!("Write CSR 0x{:x} = 0x{:?}", csr, value);
         match csr {
             0x7C0 => self.state.ssr_enable = value,
+            0x7c1 => self.state.fpmode = value,              // fpmode
             _ => (),
         }
     }
