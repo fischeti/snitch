@@ -27,6 +27,8 @@ declare void @banshee_abort_illegal_branch(%Cpu* %cpu, i32 %addr, i32 %target)
 declare void @banshee_trace(%Cpu* %cpu, i32 %addr, i32 %raw, [2 x i64] %access_slice, [2 x i64] %data_slice)
 declare i32 @banshee_wfi(%Cpu* %cpu)
 
+declare i64 @banshee_fp64_op_cvt_to_f(i64 %rs1, i8 %op, i1 %fpmode_src, i1 %fpmode_dst)
+declare i32 @banshee_fp32_op_cvt_to_f(i64 %rs1, i8 %op, i1 %fpmode_src, i1 %fpmode_dst)
 declare i16 @banshee_fp16_op(i16 %rs1, i16 %rs2, i16 %rs3, i8 %op, i1 %fpmode_dst)
 declare i32 @banshee_fp16_op_cvt_from_f(i64 %rs1, i8 %op, i1 %fpmode_src, i1 %fpmode_dst)
 declare i16 @banshee_fp16_op_cvt_to_f(i64 %rs1, i8 %op, i1 %fpmode_src, i1 %fpmode_dst)
