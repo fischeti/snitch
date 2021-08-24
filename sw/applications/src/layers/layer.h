@@ -14,6 +14,10 @@ typedef enum {
     RELU, SOFTMAX
 } ACTIVATION;
 
+typedef enum {
+    FP64=8, FP32=4
+} PRECISION;
+
 struct layer;
 typedef struct layer_struct layer;
 
@@ -21,6 +25,7 @@ struct layer_struct
 {
     LAYER_TYPE type;
     ACTIVATION activation;
+    PRECISION dtype;
 
     // GEMM
     uint32_t M;
@@ -32,9 +37,9 @@ struct layer_struct
     uint32_t TILE_N;
     uint32_t TILE_K;
 
-    double *A;
-    double *B;
-    double *C;
+    void *A;
+    void *B;
+    void *C;
 
     uint32_t A_offset;
     uint32_t B_offset;
@@ -57,16 +62,16 @@ struct layer_struct
     uint32_t FW;
     uint32_t pad;
 
-    double *ifmap;
-    double *weights;
-    double *ofmap;
+    void *ifmap;
+    void *weights;
+    void *ofmap;
 
     uint32_t TILE_CI;
     uint32_t cluster2cluster;
     uint32_t im2col;
 
     // BATCHNORM
-    double *gamma;
-    double *beta;
+    void *gamma;
+    void *beta;
 
 };

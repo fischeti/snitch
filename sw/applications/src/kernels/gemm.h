@@ -34,7 +34,7 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                       double* B, uint32_t ldB,
                       double*C, uint32_t ldC, double ALPHA, uint32_t setup_SSR);
 
-void gemm_fp64_tb_ssr_frep_vec(uint32_t M, uint32_t N, uint32_t K,
+void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                           float* A, uint32_t ldA,
                           float* B, uint32_t ldB,
                           float*C, uint32_t ldC, float ALPHA, uint32_t setup_SSR);
