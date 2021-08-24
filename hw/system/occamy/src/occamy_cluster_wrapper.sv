@@ -76,7 +76,8 @@ package occamy_cluster_pkg;
                         3, // FP64
                         1, // FP16
                         1, // FP8
-                        2  // FP16alt
+                        2, // FP16alt
+                        1  // FP8alt
                       },
                     '{default: 1},   // DIVSQRT
                     '{default: 1},   // NONCOMP
@@ -195,6 +196,7 @@ module occamy_cluster_wrapper (
     .XF16 (9'b000000000),
     .XF16ALT (9'b000000000),
     .XF8 (9'b000000000),
+    .XF8ALT (9'b000000000),
     .XFVEC (9'b000000000),
     .Xdma (9'b100000000),
     .Xssr (9'b111111111),
