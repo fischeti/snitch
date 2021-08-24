@@ -6,8 +6,9 @@
 #include <stdint.h>
 #include "gemm.h"
 #include "snrt.h"
+#include "printf.h"
 
-// typedef float vfloat __attribute__ ((vector_size (8)));
+typedef float vfloat __attribute__ ((vector_size (8)));
 
 void gemm_fp64(uint32_t M, uint32_t N, uint32_t K,
           double* A, uint32_t ldA,
@@ -370,122 +371,111 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 }
 
 
-// void gemm_fp64_tb_ssr_frep_vec(uint32_t M, uint32_t N, uint32_t K,
-//                        float* A, uint32_t ldA,
-//                        float* B, uint32_t ldB,
-//                        float*C, uint32_t ldC, float ALPHA, uint32_t setup_SSR) {
+void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
+                       float* A, uint32_t ldA,
+                       float* B, uint32_t ldB,
+                       float*C, uint32_t ldC, float ALPHA, uint32_t setup_SSR) {
 
-//     register volatile double ft0 asm("ft0");
-//     register volatile double ft1 asm("ft1");
-//     register volatile double ft2 asm("ft2");
-//     asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
+    register volatile double ft0 asm("ft0");
+    register volatile double ft1 asm("ft1");
+    register volatile double ft2 asm("ft2");
+    asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
 
-//     const uint32_t unroll = 8;
+    const uint32_t unroll = 8;
 
-//     if (setup_SSR) {
+    if (setup_SSR) {
 
-//         uint32_t ssr0_b[4] = {unroll, K, N/2/unroll, M};
-//         uint32_t ssr0_i[4] = {0, sizeof(float), 0, sizeof(float)*ldA};
+        // printf("M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", M, N, K, ldA, ldB, ldC);
 
-//         uint32_t ssr1_b[4] = {unroll, K, N/2/unroll, M};
-//         uint32_t ssr1_i[4] = {sizeof(float)*2, sizeof(float)*ldB, sizeof(float)*unroll*2, 0};
+        uint32_t ssr0_b[4] = {unroll, K/2, N/unroll, M};
+        uint32_t ssr0_i[4] = {0, sizeof(float)*2, 0, sizeof(float)*ldA};
 
-//         snrt_ssr_loop_4d(SNRT_SSR_DM0,
-//                          ssr0_b[0], ssr0_b[1], ssr0_b[2], ssr0_b[3],
-//                          ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+        uint32_t ssr1_b[4] = {unroll, K/2, N/unroll, M};
+        uint32_t ssr1_i[4] = {sizeof(float)*ldB, sizeof(float)*2, sizeof(float)*unroll*ldB, 0};
 
-//         snrt_ssr_loop_4d(SNRT_SSR_DM1,
-//                          ssr1_b[0], ssr1_b[1], ssr1_b[2], ssr1_b[3],
-//                          ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
-//     }
+        snrt_ssr_loop_4d(SNRT_SSR_DM0,
+                         ssr0_b[0], ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                         ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
 
-//     snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
-//     snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
-//     snrt_ssr_enable();
+        snrt_ssr_loop_4d(SNRT_SSR_DM1,
+                         ssr1_b[0], ssr1_b[1], ssr1_b[2], ssr1_b[3],
+                         ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
+    }
 
-//     register const uint32_t Km1 asm("t0") = K - 1;
+    // printf("B %p, stride %x\n", B, sizeof(float)*ldB);
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
+    snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
+    snrt_ssr_enable();
 
-//     for (uint32_t m = 0; m < M; m++) {
-//         uint32_t n = 0;
-//         for (uint32_t n0 = 0; n0 < N/2/unroll; n0++) {
-//             /* float *ptr = (float*)&C[m*ldC + n]; */
+    register const uint32_t Km1 asm("t0") = K/2 - 1;
 
-//             /* register vfloat c0 = (vfloat) {C[m*ldC + n + 0]*ALPHA, 0}; */
-//             /* register vfloat c1 = (vfloat) {C[m*ldC + n + 1]*ALPHA, 0}; */
-//             /* register vfloat c2 = (vfloat) {C[m*ldC + n + 2]*ALPHA, 0}; */
-//             /* register vfloat c3 = (vfloat) {C[m*ldC + n + 3]*ALPHA, 0}; */
-//             /* register vfloat c4 = (vfloat) {C[m*ldC + n + 4]*ALPHA, 0}; */
-//             /* register vfloat c5 = (vfloat) {C[m*ldC + n + 5]*ALPHA, 0}; */
-//             /* register vfloat c6 = (vfloat) {C[m*ldC + n + 6]*ALPHA, 0}; */
-//             /* register vfloat c7 = (vfloat) {C[m*ldC + n + 7]*ALPHA, 0}; */
 
-//             /* register double c0 = ALPHA*C[m*ldC + n + 0]; */
-//             /* register double c1 = ALPHA*C[m*ldC + n + 1]; */
-//             /* register double c2 = ALPHA*C[m*ldC + n + 2]; */
-//             /* register double c3 = ALPHA*C[m*ldC + n + 3]; */
-//             /* register double c4 = ALPHA*C[m*ldC + n + 4]; */
-//             /* register double c5 = ALPHA*C[m*ldC + n + 5]; */
-//             /* register double c6 = ALPHA*C[m*ldC + n + 6]; */
-//             /* register double c7 = ALPHA*C[m*ldC + n + 7]; */
+    for (uint32_t m = 0; m < M; m++) {
+        uint32_t n = 0;
+        for (uint32_t n0 = 0; n0 < N/unroll; n0++) {
 
-//             vfloat* _C = (vfloat*)&C[m*ldC + n];
+            vfloat* _C = (vfloat*)&C[m*ldC + n];
 
-//             register vfloat c0 = _C[0];
-//             register vfloat c1 = _C[1];
-//             register vfloat c2 = _C[2];
-//             register vfloat c3 = _C[3];
-//             register vfloat c4 = _C[4];
-//             register vfloat c5 = _C[5];
-//             register vfloat c6 = _C[6];
-//             register vfloat c7 = _C[7];
+            register vfloat c0 = _C[0];
+            register vfloat c1 = _C[1];
+            register vfloat c2 = _C[2];
+            register vfloat c3 = _C[3];
+            register vfloat c4 = _C[4];
+            register vfloat c5 = _C[5];
+            register vfloat c6 = _C[6];
+            register vfloat c7 = _C[7];
 
-//             /* asm volatile( */
-//             /*              ".word (7 << 20)|(5 << 15)|(1 << 7)|(0b0001011 << 0) \n" */
-//             /*              "vfmac.r.s %[c0], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c1], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c2], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c3], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c4], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c5], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c6], ft1, ft0 \n" */
-//             /*              "vfmac.r.s %[c7], ft1, ft0 \n" */
-//             /*              : [ c0 ] "+f"(c0), */
-//             /*                [ c1 ] "+f"(c1), */
-//             /*                [ c2 ] "+f"(c2), */
-//             /*                [ c3 ] "+f"(c3), */
-//             /*                [ c4 ] "+f"(c4), */
-//             /*                [ c5 ] "+f"(c5), */
-//             /*                [ c6 ] "+f"(c6), */
-//             /*                [ c7 ] "+f"(c7) */
-//             /*              : [ K ] "r"(Km1) */
-//             /*              :"ft0", "ft1"); */
+            asm volatile(
+                         ".word (7 << 20)|(5 << 15)|(1 << 7)|(0b0001011 << 0) \n"
+                         "vfmac.s %[c0], ft1, ft0 \n"
+                         "vfmac.s %[c1], ft1, ft0 \n"
+                         "vfmac.s %[c2], ft1, ft0 \n"
+                         "vfmac.s %[c3], ft1, ft0 \n"
+                         "vfmac.s %[c4], ft1, ft0 \n"
+                         "vfmac.s %[c5], ft1, ft0 \n"
+                         "vfmac.s %[c6], ft1, ft0 \n"
+                         "vfmac.s %[c7], ft1, ft0 \n"
+                         "vfadd.s %[c0], %[c0], %[c1] \n"
+                         "vfadd.s %[c1], %[c2], %[c3] \n"
+                         "vfadd.s %[c2], %[c4], %[c5] \n"
+                         "vfadd.s %[c3], %[c6], %[c7] \n"
+                         : [ c0 ] "+f"(c0),
+                           [ c1 ] "+f"(c1),
+                           [ c2 ] "+f"(c2),
+                           [ c3 ] "+f"(c3),
+                           [ c4 ] "+f"(c4),
+                           [ c5 ] "+f"(c5),
+                           [ c6 ] "+f"(c6),
+                           [ c7 ] "+f"(c7)
+                         : [ K ] "r"(Km1)
+                         :"ft0", "ft1");
 
-//             _C[0] = c0;
-//             _C[1] = c1;
-//             _C[2] = c2;
-//             _C[3] = c3;
-//             _C[4] = c4;
-//             _C[5] = c5;
-//             _C[6] = c6;
-//             _C[7] = c7;
-//             n += unroll*2;
-//         }
+            _C[0] = c0;
+            _C[1] = c1;
+            _C[2] = c2;
+            _C[3] = c3;
+            // _C[4] = c4;
+            // _C[5] = c5;
+            // _C[6] = c6;
+            // _C[7] = c7;
+            n += unroll*2;
+        }
 
-//         snrt_ssr_disable();
+        snrt_ssr_disable();
 
-//         for (; n < N; n++) {
-//             double c = ALPHA*C[m*ldC + n];
-//             for (uint32_t k = 0; k < K; k++) {
-//                 c += A[k + m*ldA] * B[k + n*ldB];
-//             }
-//             C[m*ldC + n] = c;
-//         }
+        for (; n < N; n++) {
+            double c = ALPHA*C[m*ldC + n];
+            for (uint32_t k = 0; k < K; k++) {
+                c += A[k + m*ldA] * B[k + n*ldB];
+            }
+            C[m*ldC + n] = c;
+        }
 
-//         snrt_ssr_enable();
-//     }
+        snrt_ssr_enable();
+    }
 
-//     snrt_ssr_disable();
+    snrt_ssr_disable();
 
-//     asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
+    asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
 
-// }
+}

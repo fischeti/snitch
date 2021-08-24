@@ -12,19 +12,18 @@
 
 int main() {
 
-    conv_l.ifmap = (double*)ifmap_dram;
-    conv_l.weights = (double*)weights0_dram;
-    conv_l.ofmap = (double*)ofmap_dram;
+    conv_l.ifmap = (void*)ifmap_dram;
+    conv_l.weights = (void*)weights0_dram;
+    conv_l.ofmap = (void*)ofmap_dram;
     conv_l.TILE_CI = 32;
     conv_l.pad = (conv_l.FH-1) / 2;
-
-    printf("ifmap %p weights %p\n", conv_l.ifmap, conv_l.weights);
+    conv_l.dtype = FP32;
 
     conv2d_layer(conv_l);
 
     snrt_global_barrier();
 
-    check_layer(conv_l, (double*)checksum);
+    check_layer(conv_l, (void*)checksum);
 
     snrt_global_barrier();
 

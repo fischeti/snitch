@@ -8,6 +8,7 @@ import torch.nn as nn
 np.random.seed(42)
 torch.manual_seed(42)
 
+
 def array_to_cstr(a):
     out = '{'
     if isinstance(a, np.ndarray):
@@ -20,10 +21,9 @@ def array_to_cstr(a):
     return out
 
 
-def write_header(ifmap, weights, ofmap, layer_type):
+def write_header(ifmap, weights, ofmap, layer_type, prec):
     n, ih, iw, ci = ifmap.shape
     _, oh, ow, co = ofmap.shape
-
 
     if layer_type == nn.Conv2d:
         _, fh, fw, _ = weights[0].shape
@@ -35,8 +35,10 @@ def write_header(ifmap, weights, ofmap, layer_type):
 
     file_path = os.path.dirname(sys.argv[0]) + '/include/'
 
+    prec_str = 'double' if prec == 64 else 'float'
+
     with open(file_path + f'data_{layer_type.__name__[:-2].lower()}.h', 'w') as fd:
-        fd.write(f'#include "layer.h"\n\n')
+        fd.write('#include "layer.h"\n\n')
         fd.write(f'layer {layer_type.__name__[:-2].lower()}_l = {{\n')
         fd.write(f'\t.CO = {co},\n')
         fd.write(f'\t.CI = {ci},\n')
@@ -46,17 +48,17 @@ def write_header(ifmap, weights, ofmap, layer_type):
         fd.write(f'\t.OW = {ow},\n')
         fd.write(f'\t.FH = {fh},\n')
         fd.write(f'\t.FW = {fw}\n')
-        fd.write(f'}};\n\n\n')
+        fd.write('};\n\n\n')
 
-        fd.write(f'static double result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n')
-        fd.write(f'static double checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n')
-        fd.write(f'static double ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n')
+        fd.write(f'static {prec_str} result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n')
+        fd.write(f'static {prec_str} checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n')
+        fd.write(f'static {prec_str} ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n')
         for i, w in enumerate(weights):
-            fd.write(f'static double weights{i}_dram')
+            fd.write(f'static {prec_str} weights{i}_dram')
             for s in w.shape:
                 fd.write(f'[{s}]')
-            fd.write(f' = ' + array_to_cstr(w) + ';\n\n\n')
-        fd.write(f'static double ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n')
+            fd.write(' = ' + array_to_cstr(w) + ';\n\n\n')
+        fd.write(f'static {prec_str} ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n')
 
 
 def conv2d(ifmap, weights):
@@ -70,12 +72,14 @@ def conv2d(ifmap, weights):
 
     return ofmap, [weights.permute(0, 2, 3, 1)]
 
+
 def max_pooling(ifmap, kernel):
     n, ci, ih, iw = ifmap.shape
     max_pool = nn.MaxPool2d(kernel_size=kernel)
     ofmap = max_pool(ifmap)
 
     return ofmap, torch.tensor([kernel, kernel])
+
 
 def batchnorm(ifmap):
     n, ci, ih, iw = ifmap.shape
@@ -91,6 +95,7 @@ def batchnorm(ifmap):
 
     return ofmap, [gamma, beta]
 
+
 def main():
     n = 1
     co = 8
@@ -99,6 +104,8 @@ def main():
     fw = 3
     ih = 8
     iw = 8
+
+    prec = 32
 
     ifmap = torch.randn(n, ci, ih, iw, requires_grad=False)
 
@@ -113,8 +120,6 @@ def main():
 
     elif 'MaxPool' in sys.argv:
         ofmap, weights = max_pooling(ifmap, fh)
-        module = nn.MaxPool2d
-
     else:
         ofmap, weights = batchnorm(ifmap)
         module = nn.BatchNorm2d
@@ -123,7 +128,8 @@ def main():
     # convert from CHW to HWC format
     ifmap = ifmap.permute(0, 2, 3, 1)
     ofmap = ofmap.permute(0, 2, 3, 1)
-    write_header(ifmap, weights, ofmap, module)
+    write_header(ifmap, weights, ofmap, module, prec)
+
 
 if __name__ == '__main__':
     main()
