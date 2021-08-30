@@ -15,7 +15,7 @@ typedef enum {
 } ACTIVATION;
 
 typedef enum {
-    FP64=8, FP32=4
+    FP64=8, FP32=4, FP16=2, FP8=1
 } PRECISION;
 
 struct layer;

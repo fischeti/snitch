@@ -3,4 +3,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 void check_layer(layer l, double* checksum);
-void dma_memset(void *ptr, int32_t value, uint32_t len);
+void check_layer_fp32(layer l, float* checksum);
+void dma_memset(void *ptr, uint8_t value, uint32_t len);
