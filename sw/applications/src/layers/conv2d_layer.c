@@ -49,8 +49,6 @@ void conv2d_layer(layer l) {
     uint32_t ofmap_stride = compute_num * ofmap_co_stride;
     uint32_t ofmap_size = 2 * ofmap_stride;
 
-    printf("im2col_size %d, ifmap_size %d, weight_size %d ofmap_size %d\n", im2col_size, ifmap_size, weights_size, ofmap_size);
-
     double *ptr = (double *)snrt_cluster_memory().start;
     double *im2col = ptr;
     ptr += im2col_size;
@@ -101,7 +99,6 @@ void conv2d_layer(layer l) {
                     }
                 }
                 snrt_dma_wait_all();
-                volatile double bubu_weights = l.weights[0];
             }
 
             // Iterate over pixels, outer loop iterates over tiles of columns in feature map,
@@ -125,7 +122,6 @@ void conv2d_layer(layer l) {
 
                     if (snrt_is_dm_core()) {
 
-
                         uint32_t n_ifmap_pixel_read = min(compute_num + l.FW - 1, l.IW - ow + (l.pad<<1));
                         uint32_t n_ofmap_pixel_read = min(compute_num, l.OW - ow);
                         uint32_t n_ofmap_pixel_write = min(compute_num, l.OW - ow_prev);
@@ -140,6 +136,9 @@ void conv2d_layer(layer l) {
                                                   sizeof(double)*l.CO, /* src_stride */
                                                   n_ofmap_pixel_read); /* repetitions */
                             snrt_dma_wait_all();
+                        }
+                        else {
+                            dma_memset(&ofmap[write_buf * ofmap_stride], 0, sizeof(double) * 8 * n_ofmap_pixel_read);
                         }
 
 

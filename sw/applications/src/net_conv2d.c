@@ -18,8 +18,6 @@ int main() {
     conv_l.TILE_CI = 32;
     conv_l.pad = (conv_l.FH-1) / 2;
 
-    printf("ifmap %p weights %p\n", conv_l.ifmap, conv_l.weights);
-
     conv2d_layer(conv_l);
 
     snrt_global_barrier();
