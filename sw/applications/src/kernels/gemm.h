@@ -38,3 +38,8 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                           float* A, uint32_t ldA,
                           float* B, uint32_t ldB,
                           float*C, uint32_t ldC, float ALPHA, uint32_t setup_SSR);
+
+void gemm_fp16simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
+                        void* A, uint32_t ldA,
+                       void* B, uint32_t ldB,
+                       void*C, uint32_t ldC, uint32_t ALPHA, uint32_t setup_SSR);

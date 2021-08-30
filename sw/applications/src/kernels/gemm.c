@@ -8,7 +8,9 @@
 #include "snrt.h"
 #include "printf.h"
 
-typedef float vfloat __attribute__ ((vector_size (8)));
+typedef float   v2f32 __attribute__ ((vector_size (8)));
+typedef __fp16  v4f16 __attribute__ ((vector_size (8)));
+typedef char    v8f8  __attribute__ ((vector_size (8)));
 
 void gemm_fp64(uint32_t M, uint32_t N, uint32_t K,
           double* A, uint32_t ldA,
@@ -385,7 +387,6 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 
     if (setup_SSR) {
 
-        // printf("M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", M, N, K, ldA, ldB, ldC);
 
         uint32_t ssr0_b[4] = {unroll, K/2, N/unroll, M};
         uint32_t ssr0_i[4] = {0, sizeof(float)*2, 0, sizeof(float)*ldA};
@@ -402,28 +403,46 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                          ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
     }
 
+    printf("C %p M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", C, M, N, K, ldA, ldB, ldC);
+
+
     // printf("B %p, stride %x\n", B, sizeof(float)*ldB);
     snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
     snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
     snrt_ssr_enable();
 
     register const uint32_t Km1 asm("t0") = K/2 - 1;
+    // register const uint32_t Km1 asm("t0") = 96 - 1;
+
 
 
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N/unroll; n0++) {
 
-            vfloat* _C = (vfloat*)&C[m*ldC + n];
+            // if (snrt_cluster_compute_core_idx() == 0)
+            //     printf("m %d, n %d\n", m, n);
 
-            register vfloat c0 = _C[0];
-            register vfloat c1 = _C[1];
-            register vfloat c2 = _C[2];
-            register vfloat c3 = _C[3];
-            register vfloat c4 = _C[4];
-            register vfloat c5 = _C[5];
-            register vfloat c6 = _C[6];
-            register vfloat c7 = _C[7];
+            // v2f32* _C = (v2f32*)&C[m*ldC + n];
+            float *_C = &C[m*ldC + n];
+            // printf("_C %p\n", _C);
+
+            register v2f32 c0 = (v2f32) {0, _C[0]};
+            register v2f32 c1 = (v2f32) {0, _C[1]};
+            register v2f32 c2 = (v2f32) {0, _C[2]};
+            register v2f32 c3 = (v2f32) {0, _C[3]};
+            register v2f32 c4 = (v2f32) {0, _C[4]};
+            register v2f32 c5 = (v2f32) {0, _C[5]};
+            register v2f32 c6 = (v2f32) {0, _C[6]};
+            register v2f32 c7 = (v2f32) {0, _C[7]};
+            // register v2f32 c0 = _C[0];
+            // register v2f32 c1 = _C[1];
+            // register v2f32 c2 = _C[2];
+            // register v2f32 c3 = _C[3];
+            // register v2f32 c4 = _C[4];
+            // register v2f32 c5 = _C[5];
+            // register v2f32 c6 = _C[6];
+            // register v2f32 c7 = _C[7];
 
             asm volatile(
                          ".word (7 << 20)|(5 << 15)|(1 << 7)|(0b0001011 << 0) \n"
@@ -435,6 +454,126 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                          "vfmac.s %[c5], ft1, ft0 \n"
                          "vfmac.s %[c6], ft1, ft0 \n"
                          "vfmac.s %[c7], ft1, ft0 \n"
+                        //  "vfsum.s %[c0], %[c0], %[c1] \n"
+                        //  "vfsum.s %[c1], %[c2], %[c3] \n"
+                        //  "vfsum.s %[c2], %[c4], %[c5] \n"
+                        //  "vfsum.s %[c3], %[c6], %[c7] \n"
+                         "vfadd.s %[c0], %[c0], %[c1] \n"
+                         "vfadd.s %[c1], %[c2], %[c3] \n"
+                         "vfadd.s %[c2], %[c4], %[c5] \n"
+                         "vfadd.s %[c3], %[c6], %[c7] \n"
+                         : [ c0 ] "+f"(c0),
+                           [ c1 ] "+f"(c1),
+                           [ c2 ] "+f"(c2),
+                           [ c3 ] "+f"(c3),
+                           [ c4 ] "+f"(c4),
+                           [ c5 ] "+f"(c5),
+                           [ c6 ] "+f"(c6),
+                           [ c7 ] "+f"(c7)
+                         : [ K ] "r"(Km1)
+                         :"ft0", "ft1");
+
+            // if (snrt_cluster_compute_core_idx() == 0)
+            //     printf("_C[0] %p, _C[3] %p\n", &_C[0], &_C[3]);
+
+            *(v2f32* )_C = c0;
+            *(v2f32* )_C = c1;
+            *(v2f32* )_C = c2;
+            *(v2f32* )_C = c3;
+
+            // _C[0] = ()c0;
+            // _C[1] = c1;
+            // _C[2] = c2;
+            // _C[3] = c3;
+            // _C[4] = c4;
+            // _C[5] = c5;
+            // _C[6] = c6;
+            // _C[7] = c7;
+            n += unroll*2;
+        }
+
+        snrt_ssr_disable();
+
+        for (; n < N; n++) {
+            double c = ALPHA*C[m*ldC + n];
+            for (uint32_t k = 0; k < K; k++) {
+                c += A[k + m*ldA] * B[k + n*ldB];
+            }
+            C[m*ldC + n] = c;
+        }
+
+        snrt_ssr_enable();
+    }
+
+    snrt_ssr_disable();
+
+    asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
+
+}
+
+void gemm_fp16simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
+                        void* A, uint32_t ldA,
+                       void* B, uint32_t ldB,
+                       void*C, uint32_t ldC, uint32_t ALPHA, uint32_t setup_SSR) {
+
+    register volatile double ft0 asm("ft0");
+    register volatile double ft1 asm("ft1");
+    register volatile double ft2 asm("ft2");
+    asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
+
+    const uint32_t unroll = 8;
+    const v4f16 alpha = (ALPHA)? (v4f16){1, 1, 1, 1} : (v4f16){0, 0, 0, 0};
+
+    if (setup_SSR) {
+
+        printf("M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", M, N, K, ldA, ldB, ldC);
+
+        uint32_t ssr0_b[4] = {unroll, K/2, N/unroll, M};
+        uint32_t ssr0_i[4] = {0, sizeof(__fp16)*4, 0, sizeof(__fp16)*ldA};
+
+        uint32_t ssr1_b[4] = {unroll, K/2, N/unroll, M};
+        uint32_t ssr1_i[4] = {sizeof(__fp16)*ldB, sizeof(__fp16)*4, sizeof(__fp16)*unroll*ldB, 0};
+
+        snrt_ssr_loop_4d(SNRT_SSR_DM0,
+                         ssr0_b[0], ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                         ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+
+        snrt_ssr_loop_4d(SNRT_SSR_DM1,
+                         ssr1_b[0], ssr1_b[1], ssr1_b[2], ssr1_b[3],
+                         ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
+    }
+
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
+    snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
+    snrt_ssr_enable();
+
+    register const uint32_t Km1 asm("t0") = K/2 - 1;
+
+    for (uint32_t m = 0; m < M; m++) {
+        uint32_t n = 0;
+        for (uint32_t n0 = 0; n0 < N/unroll; n0++) {
+
+            v4f16* _C = &((v4f16* )C)[m*ldC + n];
+
+            register v4f16 c0 = _C[0];
+            register v4f16 c1 = _C[1];
+            register v4f16 c2 = _C[2];
+            register v4f16 c3 = _C[3];
+            register v4f16 c4 = _C[4];
+            register v4f16 c5 = _C[5];
+            register v4f16 c6 = _C[6];
+            register v4f16 c7 = _C[7];
+
+            asm volatile(
+                         ".word (7 << 20)|(5 << 15)|(1 << 7)|(0b0001011 << 0) \n"
+                         "vfdotpex.s.h %[c0], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c1], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c2], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c3], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c4], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c5], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c6], ft1, ft0 \n"
+                         "vfdotpex.s.h %[c7], ft1, ft0 \n"
                          "vfadd.s %[c0], %[c0], %[c1] \n"
                          "vfadd.s %[c1], %[c2], %[c3] \n"
                          "vfadd.s %[c2], %[c4], %[c5] \n"
@@ -464,11 +603,11 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
         snrt_ssr_disable();
 
         for (; n < N; n++) {
-            double c = ALPHA*C[m*ldC + n];
+            v4f16 c = alpha*((v4f16* )C)[m*ldC + n];
             for (uint32_t k = 0; k < K; k++) {
-                c += A[k + m*ldA] * B[k + n*ldB];
+                c += ((v4f16* )A)[k + m*ldA] * ((v4f16* )B)[k + n*ldB];
             }
-            C[m*ldC + n] = c;
+            ((v4f16* )C)[m*ldC + n] = c;
         }
 
         snrt_ssr_enable();
