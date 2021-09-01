@@ -134,6 +134,7 @@ APP 					= net-conv2d
 
 
 run-sim:
+	@mkdir -p sw/build
 	@mkdir -p logs/banshee/
 	@rm -f logs/banshee/*
 	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) --no-print-directory
@@ -141,4 +142,10 @@ run-sim:
 	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
 	python scripts/banshee_traces.py
 
-.PHONY: run-sim
+run-rtl: bin/occamy_top.vsim
+	@mkdir -p sw/build
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-cluster .. && $(MAKE) --no-print-directory
+	./bin/occamy_top.vsim sw/build/applications/${APP}
+	$(MAKE) traces
+
+.PHONY: run-sim run-rtl
