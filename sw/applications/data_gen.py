@@ -98,8 +98,8 @@ def batchnorm(ifmap):
 
 def main():
     n = 1
-    co = 8
-    ci = 32
+    co = 16
+    ci = 8
     fh = 3
     fw = 3
     ih = 8

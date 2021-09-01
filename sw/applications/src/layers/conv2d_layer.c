@@ -61,8 +61,6 @@ void conv2d_layer(layer l) {
     ptr += ofmap_size * l.dtype;
     uint32_t *synch_flag = (void*)ptr;
 
-    // printf("im2col %p ifmap %p weights %p ofmap %p\n", im2col, ifmap, weights, ofmap);
-
     uint32_t write_buf = 0;
     uint32_t read_buf = 0;
 
@@ -80,13 +78,9 @@ void conv2d_layer(layer l) {
             // Load weights in the beginning
             if (snrt_is_dm_core()) {
 
-                // printf("co %d, ci %d\n", co, ci);
-
                 // Weights are stored in CO x FH x FW x CI format with additional padding
                 // (CI + 1) to prevent banking conflicts
                 for (uint32_t _co = 0; _co < 8; _co++) {
-
-                    // printf("transfer %x bytes from %p to %p\n", l.dtype*l.CI*l.FH*l.FW, &l.weights[(co+_co)*l.FH*l.FW*l.CI], &weights[_co * weights_co_stride * l.dtype]);
 
                     if (l.TILE_CI == l.CI) {
                         snrt_dma_txid_t weight_txid = \
@@ -146,7 +140,6 @@ void conv2d_layer(layer l) {
                         }
 
                         else {
-                            // printf("memset(%p, 0, %d)\n", &ofmap[write_buf * ofmap_stride * l.dtype], n_ofmap_pixel_read * l.dtype*8);
                             dma_memset(&ofmap[write_buf * ofmap_stride * l.dtype], 0, n_ofmap_pixel_read * l.dtype*8);
                         }
 
@@ -173,6 +166,7 @@ void conv2d_layer(layer l) {
                                 // Fill horizontal lines with zeros for padding
                                 if (oh + fh < l.pad || oh + fh >= l.IH + ((l.FH - 1)>>1)) {
                                     dma_memset(&ifmap[(write_buf * ifmap_stride + fh * ifmap_row_stride) * l.dtype], 0, l.dtype*l.TILE_CI*n_ifmap_pixel_read);
+                                    // printf("fh %d memset(%p, 0, %x)\n", fh, &ifmap[(write_buf * ifmap_stride + fh * ifmap_row_stride) * l.dtype], l.dtype*l.TILE_CI*n_ifmap_pixel_read);
                                 }
                                 else {
                                     uint32_t padding_left = (ow < l.pad)? (l.pad - ow) : 0;
@@ -181,6 +175,7 @@ void conv2d_layer(layer l) {
                                     // If there is need for padding, set whole buffer to zero
                                     if (padding_left || padding_right) {
                                         dma_memset(&ifmap[(write_buf * ifmap_stride + fh * ifmap_row_stride) * l.dtype], 0, l.dtype*(compute_num + l.FW - 1)*l.TILE_CI);
+                                        // printf("fh %d memset(%p, 0, %x)\n", fh, &ifmap[(write_buf * ifmap_stride + fh * ifmap_row_stride) * l.dtype], l.dtype*l.TILE_CI*n_ifmap_pixel_read);
                                     }
 
                                     // Then fill in the rest of the values
@@ -191,6 +186,7 @@ void conv2d_layer(layer l) {
                                                           l.dtype*l.TILE_CI, /* dst_stride */
                                                           l.dtype*l.CI, /* src_stride */
                                                           n_ifmap_pixel_read - padding_left - padding_right /* repetitions */);
+                                    // printf("fh %d transfering %p->%p size %d, rep %d\n", fh, &l.ifmap[(((oh + fh - l.pad)*l.IW + ow - (l.pad - padding_left))*l.CI + ci) * l.dtype], &ifmap[(write_buf * ifmap_stride + fh * ifmap_row_stride + padding_left * ifmap_col_stride) * l.dtype], l.dtype*l.TILE_CI, n_ifmap_pixel_read - padding_left - padding_right);
                                     snrt_dma_wait_all();
                                 }
                             }
@@ -238,7 +234,7 @@ void conv2d_layer(layer l) {
                             // only construct im2col matrix for leftover pixels
                             if (ow + n < l.OW) {
 
-                                // // printf("im2col_row_stride %d -> %p\n", im2col_row_stride, &im2col[(write_buf * im2col_mat_stride + n * im2col_row_stride) * l.dtype]);
+                                // printf("im2col %p->%p size %d rep %d\n", &ifmap[(read_buf * ifmap_stride + n * ifmap_col_stride) * l.dtype], &im2col[(write_buf * im2col_mat_stride + n * im2col_row_stride) * l.dtype], l.dtype*l.FW*l.TILE_CI, l.FH);
 
                                 snrt_dma_txid_t im2col_txid = \
                                     snrt_dma_start_2d(&im2col[(write_buf * im2col_mat_stride + n * im2col_row_stride) * l.dtype], /* dst */
@@ -288,9 +284,9 @@ void conv2d_layer(layer l) {
 
                             uint32_t setup_SSR = (ci == 0 && ow == 0 && _oh == 0)? 1 : 0;
 
-                            printf("oh %d, ow %d, ci %d\n", oh, ow, ci);
+                            // // printf("oh %d, ow %d, ci %d\n", oh, ow, ci);
 
-                            // printf("%p\n", &im2col[(read_buf * im2col_mat_stride + compute_id * im2col_row_stride) * l.dtype]);
+                            // // printf("%p\n", &im2col[(read_buf * im2col_mat_stride + compute_id * im2col_row_stride) * l.dtype]);
 
                             if (ci != 0 && l.TILE_CI != l.CI) {
                                 gemm_fp32simd_mac_tb_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
@@ -323,7 +319,7 @@ void conv2d_layer(layer l) {
             // Transfer back last output tile
             if (snrt_is_dm_core()) {
 
-                // printf("transfering last results\n");
+                // // printf("transfering last results\n");
 
                 snrt_dma_txid_t ofmap_txid = \
                     snrt_dma_start_2d(&l.ofmap[((oh_prev*l.OW+ow_prev)*l.CO+co) * l.dtype], /* dst */

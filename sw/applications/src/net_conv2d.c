@@ -15,7 +15,7 @@ int main() {
     conv_l.ifmap = (void*)ifmap_dram;
     conv_l.weights = (void*)weights0_dram;
     conv_l.ofmap = (void*)ofmap_dram;
-    conv_l.TILE_CI = 32;
+    conv_l.TILE_CI = 8;
     conv_l.pad = (conv_l.FH-1) / 2;
     conv_l.dtype = FP32;
 
@@ -23,7 +23,7 @@ int main() {
 
     snrt_global_barrier();
 
-    check_layer(conv_l, (void*)checksum);
+    check_layer_fp32(conv_l, (void*)checksum);
 
     snrt_global_barrier();
 
