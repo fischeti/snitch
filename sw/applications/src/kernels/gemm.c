@@ -378,15 +378,14 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                        float* B, uint32_t ldB,
                        float*C, uint32_t ldC, float ALPHA, uint32_t setup_SSR) {
 
-    register volatile double ft0 asm("ft0");
-    register volatile double ft1 asm("ft1");
-    register volatile double ft2 asm("ft2");
-    asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
+    // register volatile double ft0 asm("ft0");
+    // register volatile double ft1 asm("ft1");
+    // register volatile double ft2 asm("ft2");
+    // asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
 
     const uint32_t unroll = 8;
 
     if (setup_SSR) {
-
 
         uint32_t ssr0_b[4] = {unroll, K/2, N/unroll, M};
         uint32_t ssr0_i[4] = {0, sizeof(float)*2, 0, sizeof(float)*ldA};
@@ -401,9 +400,12 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
         snrt_ssr_loop_4d(SNRT_SSR_DM1,
                          ssr1_b[0], ssr1_b[1], ssr1_b[2], ssr1_b[3],
                          ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
+
+        // if (snrt_cluster_compute_core_idx() == 0)
+        //     printf("A %p B %p C %p M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", A, B, C, M, N, K, ldA, ldB, ldC);
+
     }
 
-    printf("C %p M %d, N %d, K %d, ldA %d, ldB %d, ldC %d\n", C, M, N, K, ldA, ldB, ldC);
 
 
     // printf("B %p, stride %x\n", B, sizeof(float)*ldB);
@@ -427,14 +429,47 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
             float *_C = &C[m*ldC + n];
             // printf("_C %p\n", _C);
 
-            register v2f32 c0 = (v2f32) {0, _C[0]};
-            register v2f32 c1 = (v2f32) {0, _C[1]};
-            register v2f32 c2 = (v2f32) {0, _C[2]};
-            register v2f32 c3 = (v2f32) {0, _C[3]};
-            register v2f32 c4 = (v2f32) {0, _C[4]};
-            register v2f32 c5 = (v2f32) {0, _C[5]};
-            register v2f32 c6 = (v2f32) {0, _C[6]};
-            register v2f32 c7 = (v2f32) {0, _C[7]};
+            const register float zero = 0.0;
+
+            register v2f32 c[unroll];
+
+            asm volatile(
+                "vfcpka.s.s %[c0], %[zero], %[C0]\n"
+                "vfcpka.s.s %[c1], %[zero], %[C1]\n"
+                "vfcpka.s.s %[c2], %[zero], %[C2]\n"
+                "vfcpka.s.s %[c3], %[zero], %[C3]\n"
+                "vfcpka.s.s %[c4], %[zero], %[C4]\n"
+                "vfcpka.s.s %[c5], %[zero], %[C5]\n"
+                "vfcpka.s.s %[c6], %[zero], %[C6]\n"
+                "vfcpka.s.s %[c7], %[zero], %[C7]\n"
+                : [ c0 ] "=f"(c[0]),
+                [ c1 ] "=f"(c[1]),
+                [ c2 ] "=f"(c[2]),
+                [ c3 ] "=f"(c[3]),
+                [ c4 ] "=f"(c[4]),
+                [ c5 ] "=f"(c[5]),
+                [ c6 ] "=f"(c[6]),
+                [ c7 ] "=f"(c[7])
+                : [ C0 ] "f"(_C[0]),
+                [ C1 ] "f"(_C[1]),
+                [ C2 ] "f"(_C[2]),
+                [ C3 ] "f"(_C[3]),
+                [ C4 ] "f"(_C[4]),
+                [ C5 ] "f"(_C[5]),
+                [ C6 ] "f"(_C[6]),
+                [ C7 ] "f"(_C[7]),
+                [ zero ] "f"(zero)
+                : "ft0", "ft1", "ft2"
+            );
+
+            // register v2f32 c0 = (v2f32) {0, _C[0]};
+            // register v2f32 c1 = (v2f32) {0, _C[1]};
+            // register v2f32 c2 = (v2f32) {0, _C[2]};
+            // register v2f32 c3 = (v2f32) {0, _C[3]};
+            // register v2f32 c4 = (v2f32) {0, _C[4]};
+            // register v2f32 c5 = (v2f32) {0, _C[5]};
+            // register v2f32 c6 = (v2f32) {0, _C[6]};
+            // register v2f32 c7 = (v2f32) {0, _C[7]};
             // register v2f32 c0 = _C[0];
             // register v2f32 c1 = _C[1];
             // register v2f32 c2 = _C[2];
@@ -454,32 +489,41 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                          "vfmac.s %[c5], ft1, ft0 \n"
                          "vfmac.s %[c6], ft1, ft0 \n"
                          "vfmac.s %[c7], ft1, ft0 \n"
-                        //  "vfsum.s %[c0], %[c0], %[c1] \n"
-                        //  "vfsum.s %[c1], %[c2], %[c3] \n"
-                        //  "vfsum.s %[c2], %[c4], %[c5] \n"
-                        //  "vfsum.s %[c3], %[c6], %[c7] \n"
-                         "vfadd.s %[c0], %[c0], %[c1] \n"
-                         "vfadd.s %[c1], %[c2], %[c3] \n"
-                         "vfadd.s %[c2], %[c4], %[c5] \n"
-                         "vfadd.s %[c3], %[c6], %[c7] \n"
-                         : [ c0 ] "+f"(c0),
-                           [ c1 ] "+f"(c1),
-                           [ c2 ] "+f"(c2),
-                           [ c3 ] "+f"(c3),
-                           [ c4 ] "+f"(c4),
-                           [ c5 ] "+f"(c5),
-                           [ c6 ] "+f"(c6),
-                           [ c7 ] "+f"(c7)
-                         : [ K ] "r"(Km1)
-                         :"ft0", "ft1");
+                         "vfsum.s %[c0], %[c0], %[zero] \n"
+                         "vfsum.s %[c1], %[c1], %[zero] \n"
+                         "vfsum.s %[c2], %[c2], %[zero] \n"
+                         "vfsum.s %[c3], %[c3], %[zero] \n"
+                         "vfsum.s %[c4], %[c4], %[zero] \n"
+                         "vfsum.s %[c5], %[c5], %[zero] \n"
+                         "vfsum.s %[c6], %[c6], %[zero] \n"
+                         "vfsum.s %[c7], %[c7], %[zero] \n"
+                         "vfcpka.s.s %[c0], %[c0], %[c1] \n"
+                         "vfcpka.s.s %[c1], %[c2], %[c3] \n"
+                         "vfcpka.s.s %[c2], %[c4], %[c5] \n"
+                         "vfcpka.s.s %[c3], %[c6], %[c7] \n"
+                        //  "vfadd.s %[c0], %[c0], %[c1] \n"
+                        //  "vfadd.s %[c1], %[c2], %[c3] \n"
+                        //  "vfadd.s %[c2], %[c4], %[c5] \n"
+                        //  "vfadd.s %[c3], %[c6], %[c7] \n"
+                         : [ c0 ] "+f"(c[0]),
+                           [ c1 ] "+f"(c[1]),
+                           [ c2 ] "+f"(c[2]),
+                           [ c3 ] "+f"(c[3]),
+                           [ c4 ] "+f"(c[4]),
+                           [ c5 ] "+f"(c[5]),
+                           [ c6 ] "+f"(c[6]),
+                           [ c7 ] "+f"(c[7])
+                         : [ K ] "r"(Km1),
+                         [ zero ] "f"(zero)
+                         :"ft0", "ft1", "ft2");
 
             // if (snrt_cluster_compute_core_idx() == 0)
             //     printf("_C[0] %p, _C[3] %p\n", &_C[0], &_C[3]);
 
-            *(v2f32* )_C = c0;
-            *(v2f32* )_C = c1;
-            *(v2f32* )_C = c2;
-            *(v2f32* )_C = c3;
+            ((v2f32* )_C)[0] = c[0];
+            ((v2f32* )_C)[1] = c[1];
+            ((v2f32* )_C)[2] = c[2];
+            ((v2f32* )_C)[3] = c[3];
 
             // _C[0] = ()c0;
             // _C[1] = c1;
@@ -507,7 +551,7 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 
     snrt_ssr_disable();
 
-    asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
+    // asm volatile("" ::"f"(ft0), "f"(ft1), "f"(ft2));
 
 }
 
