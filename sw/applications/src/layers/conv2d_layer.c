@@ -58,7 +58,7 @@ void conv2d_layer(layer l) {
     ptr += weights_size;
     double *ofmap = ptr;
     ptr += ofmap_size;
-    uint32_t *synch_flag = (void*)ptr;
+    volatile uint32_t *synch_flag = (void*)ptr;
 
     uint32_t write_buf = 0;
     uint32_t read_buf = 0;
@@ -191,11 +191,10 @@ void conv2d_layer(layer l) {
 
                         // Transfer tile from other cluster to memory
                         else {
-
                             // A cluster always loads from the previous cluster
-                            uint32_t cluster_offset =  - (cluster_id - 1) * 0x00040000;
-                            uint32_t *src_synch_flag = synch_flag + cluster_offset;
-                            double *src_ifmap = ifmap + cluster_offset;
+                            uint32_t cluster_offset = 0x00040000;
+                            volatile uint32_t *src_synch_flag = (void* )synch_flag - cluster_offset;
+                            double *src_ifmap = (void* )ifmap - cluster_offset;
 
                             // Wait until previous cluster has released data
                             if (l.cluster2cluster && (cluster_id % cluster_per_quadrant) != 0) {
@@ -212,6 +211,7 @@ void conv2d_layer(layer l) {
 
                             // clear synch flag of src cluster
                             if (l.cluster2cluster && (cluster_id % cluster_per_quadrant) != 0) {
+                                // printf("Cluster %d clearing synch flag %p\n", cluster_id, &src_synch_flag[!write_buf]);
                                 src_synch_flag[!write_buf] = 0;
                             }
 
@@ -220,6 +220,7 @@ void conv2d_layer(layer l) {
                         // New data is produced
                         if (l.cluster2cluster) {
                             synch_flag[write_buf] = 1;
+                            // printf("Cluster %d setting synch flag %p\n", cluster_id, &synch_flag[write_buf]);
                         }
 
 
