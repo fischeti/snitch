@@ -67,6 +67,10 @@ void conv2d_layer(layer l) {
     int32_t oh_prev = -1;
     int32_t ow_prev = -1;
 
+    if (snrt_is_dm_core()) {
+        printf("L1 Utilization %d\n", (im2col_size + ifmap_size + weights_size + ofmap_size) * l.dtype);
+        printf("weights_size %d im2col_size %d ifmap_size %d, ofmap_size %d\n", weights_size * l.dtype, im2col_size * l.dtype, ifmap_size * l.dtype, ofmap_size * l.dtype);
+    }
     snrt_global_barrier();
 
     // Distribute output channels across clusters
@@ -277,6 +281,8 @@ void conv2d_layer(layer l) {
                         // Wait until DMA core has finished the im2col transform
                         snrt_cluster_hw_barrier();
 
+                        benchmark();
+
                         // Each core performs a matrix multiplication on the im2col buffer
                         // Of size (1 x FHxFWxCI) x (FHxFWxCI x 8), 8 represents CO and is the
                         // unrolling factor needed to prevent RAW conflicts.
@@ -307,6 +313,8 @@ void conv2d_layer(layer l) {
                         // Toggle read and write buffer
                         read_buf = !read_buf;
                         write_buf = !write_buf;
+
+                        benchmark();
 
                     }
                 }

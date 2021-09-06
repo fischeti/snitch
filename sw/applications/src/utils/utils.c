@@ -9,6 +9,10 @@
 #include "math.h"
 #include <string.h>
 
+#include "../../vendor/riscv-opcodes/encoding.h"
+
+uint64_t benchmark() { return read_csr(mcycle); }
+
 void check_layer(layer l, double* checksum) {
 
     // DMA Core compares result with a precomputed checksum
