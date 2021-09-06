@@ -10,12 +10,15 @@
 #include "math.h"
 #include "printf.h"
 
+#define min(a,b) ((a)<(b)?(a):(b))
+#define max(a,b) ((a)>(b)?(a):(b))
+
 int main() {
 
     conv_l.ifmap = (void*)ifmap_dram;
     conv_l.weights = (void*)weights0_dram;
     conv_l.ofmap = (void*)ofmap_dram;
-    conv_l.TILE_CI = 8;
+    conv_l.TILE_CI = min(32 * sizeof(double) / conv_l.dtype, conv_l.CI);
     conv_l.pad = (conv_l.FH-1) / 2;
     conv_l.dtype = FP32;
 
