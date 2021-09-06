@@ -197,7 +197,7 @@ module occamy_cluster_wrapper (
     .XF16ALT (9'b000000000),
     .XF8 (9'b000000000),
     .XF8ALT (9'b000000000),
-    .XFVEC (9'b000000000),
+    .XFVEC (9'b011111111),
     .Xdma (9'b100000000),
     .Xssr (9'b111111111),
     .Xfrep (9'b111111111),

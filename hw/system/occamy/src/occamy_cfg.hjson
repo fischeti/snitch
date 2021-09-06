@@ -93,6 +93,7 @@
         xssr: true,
         xfrep: true,
         xdma: false,
+        xfvec: true,
         ssr_nr_credits: 4,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
