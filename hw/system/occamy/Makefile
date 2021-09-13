@@ -135,15 +135,21 @@ fpga:
 NUM_CLUSTERS			= 1
 NUM_CORES				= 9
 
-APP 					= net-conv2d
+APP 					= net-gemm
 
 
 run-sim:
 	@mkdir -p logs/banshee/
 	@rm -f logs/banshee/*
-	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) --no-print-directory
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) -j --no-print-directory
 	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
 	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
 	python scripts/banshee_traces.py
 
-.PHONY: run-sim
+run-rtl:
+	@rm -f logs/*.dasm
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-cluster -DCMAKE_TOOLCHAIN_FILE=toolchain-llvm .. && $(MAKE) -j --no-print-directory
+	bin/occamy_top.vsim sw/build/applications/${APP}
+	$(MAKE) traces
+
+.PHONY: run-sim run-rtl
