@@ -18,7 +18,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_subdirectory(../snRuntime snRuntime)
 endif()
 
-include_directories(include src/layers src/kernels src/utils)
+include_directories(include data src/layers src/kernels src/utils)
 include_directories(${SNRUNTIME_INCLUDE_DIRS})
 
 add_library(kernels src/kernels/batchnorm.c src/kernels/maxpool.c src/kernels/gemm.c)
@@ -36,4 +36,7 @@ target_link_libraries(net-maxpool kernels layers utils)
 
 add_snitch_executable(net-conv2d src/net_conv2d.c)
 target_link_libraries(net-conv2d kernels layers utils)
+
+add_snitch_executable(net-gemm src/net_gemm.c)
+target_link_libraries(net-gemm kernels utils)
 

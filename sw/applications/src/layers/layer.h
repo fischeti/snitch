@@ -28,6 +28,9 @@ struct layer_struct
     uint32_t N;
     uint32_t K;
 
+    uint32_t TA;
+    uint32_t TB;
+
     uint32_t TILE_M;
     uint32_t TILE_N;
     uint32_t TILE_K;
