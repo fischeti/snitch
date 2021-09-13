@@ -8,6 +8,9 @@
 #include "printf.h"
 #include "math.h"
 #include <string.h>
+#include "../../vendor/riscv-opcodes/encoding.h"
+
+uint32_t benchmark_get_cycle() { return read_csr(mcycle); }
 
 void check_layer(layer l, double* checksum) {
 
