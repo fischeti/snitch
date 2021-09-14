@@ -144,7 +144,7 @@ run-sim:
 	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) -j --no-print-directory
 	banshee --num-clusters ${NUM_CLUSTERS} --num-cores ${NUM_CORES} --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
 	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
-	python scripts/banshee_traces.py
+	python scripts/banshee_traces.py -f logs/banshee/traces.txt
 
 run-rtl:
 	@rm -f logs/*.dasm

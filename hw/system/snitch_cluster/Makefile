@@ -101,3 +101,22 @@ clean:
 	# work/
 
 .PHONY: clean vlt.build vsim.build all
+
+APP 					= net-gemm
+
+
+run-sim:
+	@mkdir -p logs/banshee/
+	@rm -f logs/banshee/*
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) -j --no-print-directory
+	banshee --num-clusters 1 --num-cores 9 --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
+	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
+	python ../occamy/scripts/banshee_traces.py -f logs/banshee/traces.txt
+
+run-rtl:
+	@rm -f logs/*.dasm
+	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-cluster -DCMAKE_TOOLCHAIN_FILE=toolchain-llvm .. && $(MAKE) -j --no-print-directory
+	bin/snitch_cluster.vsim sw/build/applications/${APP}
+	$(MAKE) traces
+
+.PHONY: run-sim run-rtl
