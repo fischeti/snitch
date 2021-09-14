@@ -33,7 +33,7 @@ set fpu7 $snitch_cc_7/gen_fpu/i_snitch_fp_ss
 add wave -noupdate -divider FPUs
 
 add wave -noupdate -expand -group FPU0 $fpu0/i_fpu/op_i
-add wave -noupdate -expand -group FPU0 $fpu0/i_fpu/in_ready_o
+add wave -noupdate -expand -group FPU0 $fpu0/i_fpu/in_valid_i
 add wave -noupdate -expand -group FPU0 $fpu0/i_fpu/out_valid_o
 
 add wave -noupdate -expand -group FPU1 $fpu1/i_fpu/op_i
@@ -52,9 +52,9 @@ add wave -noupdate -expand -group FPU4 $fpu4/i_fpu/op_i
 add wave -noupdate -expand -group FPU4 $fpu4/i_fpu/in_valid_i
 add wave -noupdate -expand -group FPU4 $fpu4/i_fpu/out_valid_o
 
-add wave -noupdate -expand -group FPU2 $fpu2/i_fpu/op_i
-add wave -noupdate -expand -group FPU2 $fpu2/i_fpu/in_valid_i
-add wave -noupdate -expand -group FPU2 $fpu2/i_fpu/out_valid_o
+add wave -noupdate -expand -group FPU5 $fpu2/i_fpu/op_i
+add wave -noupdate -expand -group FPU5 $fpu2/i_fpu/in_valid_i
+add wave -noupdate -expand -group FPU5 $fpu2/i_fpu/out_valid_o
 
 add wave -noupdate -expand -group FPU6 $fpu6/i_fpu/op_i
 add wave -noupdate -expand -group FPU6 $fpu6/i_fpu/in_valid_i
