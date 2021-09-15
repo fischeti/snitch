@@ -148,8 +148,8 @@ package snitch_cluster_peripheral_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    snitch_cluster_peripheral_hw2reg_perf_counter_mreg_t [1:0] perf_counter; // [128:33]
-    snitch_cluster_peripheral_hw2reg_hw_barrier_reg_t hw_barrier; // [32:1]
+    snitch_cluster_peripheral_hw2reg_perf_counter_mreg_t [1:0] perf_counter; // [127:32]
+    snitch_cluster_peripheral_hw2reg_hw_barrier_reg_t hw_barrier; // [31:0]
   } snitch_cluster_peripheral_hw2reg_t;
 
   // Register offsets
