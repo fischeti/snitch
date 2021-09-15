@@ -80,13 +80,25 @@ int main() {
             volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
 
-            // benchmark_get_cycle();
+            if (compute_id == 0) {
+                snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_TCDM_ACCESSED, 0);
+                snrt_start_perf_counter(SNRT_PERF_CNT1, SNRT_PERF_CNT_TCDM_CONGESTED, 0);
+            }
+
+            benchmark_get_cycle();
             gemm_fp64_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
                                 &mat_A[A_offset], ldA,
                                 mat_B, ldB,
                                 &mat_C[C_offset], l1_gemm_l.N,
                                 l1_gemm_l.ALPHA, setup_SSR);
-            uint32_t bubu = benchmark_get_cycle();
+            benchmark_get_cycle();
+            if (compute_id == 0) {
+                snrt_stop_perf_counter(SNRT_PERF_CNT0);
+                snrt_stop_perf_counter(SNRT_PERF_CNT1);
+                uint32_t tcdm_accessed = snrt_get_perf_counter(SNRT_PERF_CNT0);
+                uint32_t tcdm_congested = snrt_get_perf_counter(SNRT_PERF_CNT1);
+                printf("TCDM: %d/%d acc./cong.\n", tcdm_accessed, tcdm_congested);
+            }
             snrt_cluster_hw_barrier();
         }
         else {
