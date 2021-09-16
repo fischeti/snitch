@@ -16,25 +16,27 @@ int main() {
 
     layer l1_gemm_l = gemm_l;
 
-    l1_gemm_l.A = (double*)gemm_A_dram;
-    l1_gemm_l.B = (double*)gemm_B_dram;
-    l1_gemm_l.C = (double*)gemm_C_dram;
+    l1_gemm_l.A = (void *)gemm_A_dram;
+    l1_gemm_l.B = (void *)gemm_B_dram;
+    l1_gemm_l.C = (void *)gemm_C_dram;
 
     volatile uint32_t cluster_num = snrt_cluster_num();
     volatile uint32_t cluster_id = snrt_cluster_idx();
-    // uint32_t compute_num = snrt_cluster_compute_core_num();
-    volatile uint32_t compute_num = 8;
+    volatile uint32_t compute_num = snrt_cluster_compute_core_num();
     volatile uint32_t compute_id = snrt_cluster_compute_core_idx();
 
-    double *mat_A, *mat_B, *mat_C;
-    double *ptr = (double*)snrt_cluster_memory().start;
+    // double *mat_A, *mat_B, *mat_C;
+    // double *ptr = (double*)snrt_cluster_memory().start;
+
+    void *mat_A, *mat_B, *mat_C;
+    void *ptr = (double*)snrt_cluster_memory().start;
 
     mat_A = ptr;
-    ptr += l1_gemm_l.M * (l1_gemm_l.K + MAT_ROW_PADDING) + MAT_PADDING;
+    ptr += (l1_gemm_l.M * (l1_gemm_l.K + MAT_ROW_PADDING) + MAT_PADDING) * l1_gemm_l.dtype;
     mat_B = ptr;
-    ptr += (l1_gemm_l.K + MAT_ROW_PADDING) * l1_gemm_l.N;
+    ptr += (l1_gemm_l.K + MAT_ROW_PADDING) * l1_gemm_l.N * l1_gemm_l.dtype;
     mat_C = ptr;
-    ptr += l1_gemm_l.M * l1_gemm_l.N;
+    ptr += l1_gemm_l.M * l1_gemm_l.N * l1_gemm_l.dtype;
 
     // if (snrt_global_core_idx() == 0) {
     //     printf("L1 Utilization %p\n", ptr);
@@ -48,20 +50,20 @@ int main() {
         snrt_dma_txid_t txid_A = \
             snrt_dma_start_2d(mat_A,
                             l1_gemm_l.A,
-                            sizeof(double)*l1_gemm_l.K,
-                            sizeof(double)*(l1_gemm_l.K + MAT_ROW_PADDING),
-                            sizeof(double)*l1_gemm_l.K,
+                            l1_gemm_l.dtype*l1_gemm_l.K,
+                            l1_gemm_l.dtype*(l1_gemm_l.K + MAT_ROW_PADDING),
+                            l1_gemm_l.dtype*l1_gemm_l.K,
                             l1_gemm_l.M);
         snrt_dma_txid_t txid_B = \
             snrt_dma_start_2d(mat_B,
                             l1_gemm_l.B,
-                            sizeof(double)*l1_gemm_l.K,
-                            sizeof(double)*(l1_gemm_l.K + MAT_ROW_PADDING),
-                            sizeof(double)*l1_gemm_l.K,
+                            l1_gemm_l.dtype*l1_gemm_l.K,
+                            l1_gemm_l.dtype*(l1_gemm_l.K + MAT_ROW_PADDING),
+                            l1_gemm_l.dtype*l1_gemm_l.K,
                             l1_gemm_l.N);
 
         snrt_dma_txid_t txid_C = \
-            snrt_dma_start_1d(mat_C, l1_gemm_l.C, sizeof(double)*l1_gemm_l.M*l1_gemm_l.N);
+            snrt_dma_start_1d(mat_C, l1_gemm_l.C, l1_gemm_l.dtype*l1_gemm_l.M*l1_gemm_l.N);
 
         snrt_dma_wait_all();
     }
@@ -75,8 +77,8 @@ int main() {
             printf("not yet implemented\n");
         }
         else if (!l1_gemm_l.TA && l1_gemm_l.TB) {
-            volatile uint32_t A_offset = compute_id * (l1_gemm_l.K + MAT_ROW_PADDING);
-            volatile uint32_t C_offset = compute_id * l1_gemm_l.N;
+            volatile uint32_t A_offset = compute_id * (l1_gemm_l.K + MAT_ROW_PADDING) * l1_gemm_l.dtype;
+            volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
 
@@ -86,11 +88,19 @@ int main() {
             }
 
             benchmark_get_cycle();
-            gemm_fp64_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
-                                &mat_A[A_offset], ldA,
-                                mat_B, ldB,
-                                &mat_C[C_offset], l1_gemm_l.N,
-                                l1_gemm_l.ALPHA, setup_SSR);
+            if (l1_gemm_l.dtype == FP64) {
+                gemm_fp64_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                                    &mat_A[A_offset], ldA,
+                                    mat_B, ldB,
+                                    &mat_C[C_offset], l1_gemm_l.N,
+                                    l1_gemm_l.ALPHA, setup_SSR);
+            } else {
+                gemm_fp32simd_mac_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                                    &mat_A[A_offset], ldA,
+                                    mat_B, ldB,
+                                    &mat_C[C_offset], l1_gemm_l.N,
+                                    l1_gemm_l.ALPHA, setup_SSR);
+            }
             benchmark_get_cycle();
             if (compute_id == 0) {
                 snrt_stop_perf_counter(SNRT_PERF_CNT0);

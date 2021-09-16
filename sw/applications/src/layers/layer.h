@@ -14,6 +14,10 @@ typedef enum {
     RELU, SOFTMAX
 } ACTIVATION;
 
+typedef enum {
+    FP64=8, FP32=4, FP16=2, FP8=1
+} PRECISION;
+
 struct layer;
 typedef struct layer_struct layer;
 
@@ -71,5 +75,7 @@ struct layer_struct
     // BATCHNORM
     double *gamma;
     double *beta;
+
+    PRECISION dtype;
 
 };

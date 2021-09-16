@@ -124,14 +124,17 @@ def emit_GEMM_layer(name='gemm', **kwargs):
     layer_str += f'\t.K = {k},\n'
     layer_str += f'\t.TA = {int(kwargs["ta"])},\n'
     layer_str += f'\t.TB = {int(kwargs["tb"])},\n'
-    layer_str += f'\t.ALPHA = {kwargs["alpha"]}\n'
+    layer_str += f'\t.ALPHA = {kwargs["alpha"]},\n'
+    layer_str += f'\t.dtype = FP{kwargs["prec"]}\n'
     layer_str += '};\n\n\n'
 
-    layer_str += f'static double {name}_A_dram [{m}][{k}] = ' + array_to_cstr(mat_A) + ';\n\n\n'
-    layer_str += f'static double {name}_B_dram [{k}][{n}] = ' + array_to_cstr(mat_B) + ';\n\n\n'
-    layer_str += f'static double {name}_C_dram [{m}][{n}] = ' + array_to_cstr(mat_C) + ';\n\n\n'
-    layer_str += f'static double {name}_result[{m}][{n}] __attribute__((section(".data")));\n\n'
-    layer_str += f'static double {name}_checksum[{m}] = ' + array_to_cstr(torch.sum(result, dim=-1)) + ';\n\n\n'
+    dtype = 'double' if kwargs['prec'] == 64 else 'float'
+
+    layer_str += f'static {dtype} {name}_A_dram [{m}][{k}] = ' + array_to_cstr(mat_A) + ';\n\n\n'
+    layer_str += f'static {dtype} {name}_B_dram [{k}][{n}] = ' + array_to_cstr(mat_B) + ';\n\n\n'
+    layer_str += f'static {dtype} {name}_C_dram [{m}][{n}] = ' + array_to_cstr(mat_C) + ';\n\n\n'
+    layer_str += f'static {dtype} {name}_result[{m}][{n}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_checksum[{m}] = ' + array_to_cstr(torch.sum(result, dim=-1)) + ';\n\n\n'
 
     return layer_str
 
@@ -194,14 +197,19 @@ def main():
     with args.cfg.open() as f:
         param = hjson.loads(f.read())
 
+    if param['prec'] == 64:
+        dtype = torch.float64
+    else:
+        dtype = torch.float32
+
     if args.kernel == 'Conv2d':
         ifmap = torch.randn(1, param['channels']['in'],
                             param['input_dim']['height'],
-                            param['input_dim']['width'], requires_grad=False)
+                            param['input_dim']['width'], requires_grad=False, dtype=dtype)
         weights = torch.randn(param['channels']['out'],
                               param['channels']['in'],
                               param['filter']['height'],
-                              param['filter']['width'], requires_grad=False)
+                              param['filter']['width'], requires_grad=False, dtype=dtype)
 
         ofmap = conv2d(ifmap, weights,
                        padding=param['filter']['padding'],
@@ -214,9 +222,9 @@ def main():
         emit_header_file('Conv2d', **kwargs)
 
     elif args.kernel == 'GEMM':
-        mat_A = torch.randn(param['M'], param['K'], requires_grad=False)
-        mat_B = torch.randn(param['K'], param['N'], requires_grad=False)
-        mat_C = torch.randn(param['M'], param['N'], requires_grad=False)
+        mat_A = torch.randn(param['M'], param['K'], requires_grad=False, dtype=dtype)
+        mat_B = torch.randn(param['K'], param['N'], requires_grad=False, dtype=dtype)
+        mat_C = torch.randn(param['M'], param['N'], requires_grad=False, dtype=dtype)
 
         result = param['alpha'] * mat_C + torch.matmul(mat_A, mat_B)
 
@@ -235,7 +243,8 @@ def main():
                 'K': param['K'],
                 'ta': param['transpose_A'],
                 'tb': param['transpose_B'],
-                'alpha': param['alpha']}
+                'alpha': param['alpha'],
+                'prec': param['prec']}
 
         emit_header_file('GEMM', **kwargs)
 

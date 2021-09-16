@@ -9,6 +9,7 @@
     N: 64,
     K: 64,
     alpha: 0.0,
-    transpose_A: false
-    transpose_B: true
+    transpose_A: false,
+    transpose_B: true,
+    prec: 32
 }
