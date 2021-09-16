@@ -7,6 +7,7 @@
     rom: {
         address: 16777216, // 0x1000000
         length: 131072, // 128 kiB
+        cacheable: true,
     },
     spm: {
       address: 1879048192, // 0x70000000

@@ -20,6 +20,8 @@ class Occamy(Generator):
         # TODO(zarubaf): Check dram start address is aligned to its length.
         # For this example system make the entire dram cacheable.
         pma_cfg.add_region(PMA.CACHED, 0x80000000, 0x80000000)
+        if cfg['rom']['cacheable']:
+            pma_cfg.add_region(PMA.CACHED, cfg['rom']['address'], cfg['rom']['length'])
 
         # Store Snitch cluster config in separate variable
         self.cluster = SnitchCluster(cfg["cluster"], pma_cfg)
