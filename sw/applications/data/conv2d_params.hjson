@@ -19,4 +19,5 @@
         padding: 1, # width//2
         stride: 1,
     }
+    prec: 64
 }

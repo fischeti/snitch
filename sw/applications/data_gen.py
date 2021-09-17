@@ -4,6 +4,7 @@ import numpy as np
 import sys
 import os
 import torch
+from torch._C import dtype
 import torch.nn as nn
 import argparse
 import pathlib
@@ -144,8 +145,8 @@ def conv2d(ifmap, weights, padding=1, stride=1):
     co, _, fh, fw = weights.shape
 
     conv2d = nn.Conv2d(ci, co, (fh, fw), padding=((fh-1)//2, (fw-1)//2))
-    conv2d.weight = nn.Parameter(torch.Tensor(weights), requires_grad=False)
-    conv2d.bias = nn.Parameter(torch.zeros_like(conv2d.bias), requires_grad=False)
+    conv2d.weight = nn.Parameter(weights, requires_grad=False)
+    conv2d.bias = nn.Parameter(torch.zeros_like(conv2d.bias, dtype=weights.dtype), requires_grad=False)
     ofmap = conv2d(ifmap)
 
     return ofmap
@@ -178,18 +179,11 @@ def main():
 
     parser = argparse.ArgumentParser(description='Generate data for kernels')
     parser.add_argument(
-        '-k',
-        '--kernel',
-        type=str,
-        required=True,
-        help='Select kernels, possible: Conv2d, BatchNorm, MaxPool'
-    )
-    parser.add_argument(
         "-c",
         "--cfg",
         type=pathlib.Path,
         required=True,
-        help='Select param config file for selected kernel'
+        help='Select param config file kernel'
     )
 
     args = parser.parse_args()
@@ -202,7 +196,7 @@ def main():
     else:
         dtype = torch.float32
 
-    if args.kernel == 'Conv2d':
+    if param['kernel'] == 'Conv2d':
         ifmap = torch.randn(1, param['channels']['in'],
                             param['input_dim']['height'],
                             param['input_dim']['width'], requires_grad=False, dtype=dtype)
@@ -221,7 +215,7 @@ def main():
         kwargs = {'ifmap': ifmap, 'weights': weights, 'ofmap': ofmap}
         emit_header_file('Conv2d', **kwargs)
 
-    elif args.kernel == 'GEMM':
+    elif param['kernel'] == 'GEMM':
         mat_A = torch.randn(param['M'], param['K'], requires_grad=False, dtype=dtype)
         mat_B = torch.randn(param['K'], param['N'], requires_grad=False, dtype=dtype)
         mat_C = torch.randn(param['M'], param['N'], requires_grad=False, dtype=dtype)
