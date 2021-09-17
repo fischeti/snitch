@@ -294,9 +294,10 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
         uint32_t ssr1_b[4] = {unroll, K, N/unroll, M};
         uint32_t ssr1_i[4] = {8*ldB, 8, 8*ldB*unroll, 0};
 
-        snrt_ssr_loop_4d(SNRT_SSR_DM0,
-                         ssr0_b[0], ssr0_b[1], ssr0_b[2], ssr0_b[3],
-                         ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+        snrt_ssr_loop_3d(SNRT_SSR_DM0,
+                         ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                         ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+        snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
 
         snrt_ssr_loop_4d(SNRT_SSR_DM1,
                          ssr1_b[0], ssr1_b[1], ssr1_b[2], ssr1_b[3],
@@ -450,14 +451,14 @@ void gemm_fp32simd_mac_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                          "vfmac.s %[c5], ft1, ft0 \n"
                          "vfmac.s %[c6], ft1, ft0 \n"
                          "vfmac.s %[c7], ft1, ft0 \n"
-                         "vfsum.s %[c0], %[c0], %[zero] \n"
-                         "vfsum.s %[c1], %[c1], %[zero] \n"
-                         "vfsum.s %[c2], %[c2], %[zero] \n"
-                         "vfsum.s %[c3], %[c3], %[zero] \n"
-                         "vfsum.s %[c4], %[c4], %[zero] \n"
-                         "vfsum.s %[c5], %[c5], %[zero] \n"
-                         "vfsum.s %[c6], %[c6], %[zero] \n"
-                         "vfsum.s %[c7], %[c7], %[zero] \n"
+                        //  "vfsum.s %[c0], %[c0], %[zero] \n"
+                        //  "vfsum.s %[c1], %[c1], %[zero] \n"
+                        //  "vfsum.s %[c2], %[c2], %[zero] \n"
+                        //  "vfsum.s %[c3], %[c3], %[zero] \n"
+                        //  "vfsum.s %[c4], %[c4], %[zero] \n"
+                        //  "vfsum.s %[c5], %[c5], %[zero] \n"
+                        //  "vfsum.s %[c6], %[c6], %[zero] \n"
+                        //  "vfsum.s %[c7], %[c7], %[zero] \n"
                          "vfcpka.s.s %[c0], %[c0], %[c1] \n"
                          "vfcpka.s.s %[c1], %[c2], %[c3] \n"
                          "vfcpka.s.s %[c2], %[c4], %[c5] \n"
