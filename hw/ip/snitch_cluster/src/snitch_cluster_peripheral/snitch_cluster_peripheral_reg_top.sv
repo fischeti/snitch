@@ -2051,6 +2051,9 @@ module snitch_cluster_peripheral_reg_top #(
   assign icache_prefetch_enable_we = addr_hit[9] & reg_we & !reg_error;
   assign icache_prefetch_enable_wd = reg_wdata[0];
 
+  assign icache_prefetch_enable_we = addr_hit[8] & reg_we & !reg_error;
+  assign icache_prefetch_enable_wd = reg_wdata[0];
+
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
