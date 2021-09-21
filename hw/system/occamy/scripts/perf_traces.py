@@ -64,11 +64,12 @@ def main():
                     'total_frep_cycles': sum(perf['frep_cycles']),
                     'avg_frep_cycles': np.mean(perf['frep_cycles']),
                     'actual_frep_cycles': perf['frep_end'] - perf['frep_start'],
-                    'overhead_cycles': perf['frep_end'] - perf['frep_start'] - sum(perf['frep_cycles']),
+                    'overhead_cycles': perf['section'][1] - perf['section'][0] - (perf['frep_end'] - perf['frep_start']),
                     'section_cycles': perf['section'][1] - perf['section'][0],
                     'fpu_utilization_section': perf['n_frep']*perf['n_frep_rep']/(perf['section'][1] - perf['section'][0]),
                     'fpu_utilization_frep': perf['n_frep']*perf['n_frep_rep']/sum(perf['frep_cycles'])
                 }
+                print(hart_stats)
 
                 stats.append(hart_stats)
 

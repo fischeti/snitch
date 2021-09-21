@@ -109,7 +109,7 @@ run-sim:
 	@mkdir -p logs/banshee/
 	@rm -f logs/banshee/*
 	cd sw/build && cmake-3.18.1 -DSNITCH_RUNTIME=snRuntime-banshee .. && $(MAKE) -j --no-print-directory
-	banshee --num-clusters 1 --num-cores 9 --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
+	-banshee --num-clusters 1 --num-cores 9 --no-opt-jit --no-opt-llvm --trace sw/build/applications/${APP} > logs/banshee/traces.dasm
 	spike-dasm < logs/banshee/traces.dasm > logs/banshee/traces.txt
 	python ../occamy/scripts/banshee_traces.py -f logs/banshee/traces.txt
 

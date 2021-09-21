@@ -7,7 +7,9 @@
 #include "gemm.h"
 #include "utils.h"
 #include "snrt.h"
-#include "printf.h"
+// #include "printf.h"
+#include "perf_cnt.h"
+#include "math.h"
 
 #define MAT_ROW_PADDING 1
 #define MAT_PADDING 8
@@ -38,11 +40,8 @@ int main() {
     mat_C = ptr;
     ptr += l1_gemm_l.M * l1_gemm_l.N * l1_gemm_l.dtype;
 
-    // if (snrt_global_core_idx() == 0) {
-    //     printf("L1 Utilization %p\n", ptr);
-    //     printf("A %p\nB %p\nC %p\n", mat_A, mat_B, mat_C);
-    //     printf("M %d N %d K %d\n", l1_gemm_l.M, l1_gemm_l.N, l1_gemm_l.K);
-    // }
+
+    uint32_t errors = 0;
 
     snrt_global_barrier();
 
@@ -74,51 +73,99 @@ int main() {
         const uint32_t setup_SSR = 1;
 
         if (!l1_gemm_l.TA && !l1_gemm_l.TB) {
-            printf("not yet implemented\n");
+            volatile uint32_t A_offset = compute_id * (l1_gemm_l.K + MAT_ROW_PADDING) * l1_gemm_l.dtype;
+            volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
+            volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
+            volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
+            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+
+            benchmark_get_cycle();
+            gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
+                          mat_B, ldB, l1_gemm_l.TB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
+            benchmark_get_cycle();
         }
         else if (!l1_gemm_l.TA && l1_gemm_l.TB) {
             volatile uint32_t A_offset = compute_id * (l1_gemm_l.K + MAT_ROW_PADDING) * l1_gemm_l.dtype;
             volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
-
-            if (compute_id == 0) {
-                snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_TCDM_ACCESSED, 0);
-                snrt_start_perf_counter(SNRT_PERF_CNT1, SNRT_PERF_CNT_TCDM_CONGESTED, 0);
-            }
+            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
 
             benchmark_get_cycle();
             if (l1_gemm_l.dtype == FP64) {
-                gemm_fp64_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
-                                    &mat_A[A_offset], ldA,
-                                    mat_B, ldB,
-                                    &mat_C[C_offset], l1_gemm_l.N,
-                                    l1_gemm_l.ALPHA, setup_SSR);
-            } else {
+                gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
+                          mat_B, ldB, l1_gemm_l.TB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
+            } else if (l1_gemm_l.dtype == FP32) {
                 gemm_fp32simd_mac_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
-                                    &mat_A[A_offset], ldA,
-                                    mat_B, ldB,
-                                    &mat_C[C_offset], l1_gemm_l.N,
-                                    l1_gemm_l.ALPHA, setup_SSR);
+                          &mat_A[A_offset], ldA,
+                          mat_B, ldB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
             }
             benchmark_get_cycle();
-            if (compute_id == 0) {
-                snrt_stop_perf_counter(SNRT_PERF_CNT0);
-                snrt_stop_perf_counter(SNRT_PERF_CNT1);
-                uint32_t tcdm_accessed = snrt_get_perf_counter(SNRT_PERF_CNT0);
-                uint32_t tcdm_congested = snrt_get_perf_counter(SNRT_PERF_CNT1);
-                printf("TCDM: %d/%d acc./cong.\n", tcdm_accessed, tcdm_congested);
-            }
-            snrt_cluster_hw_barrier();
+            gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
+                          mat_B, ldB, l1_gemm_l.TB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
+            benchmark_get_cycle();
+
         }
-        else {
-            printf("not yet implemented\n");
+        else if (l1_gemm_l.TA && !l1_gemm_l.TB) {
+            volatile uint32_t A_offset = compute_id * l1_gemm_l.dtype;
+            volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
+            volatile uint32_t ldA = (l1_gemm_l.K + MAT_ROW_PADDING);
+            volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
+            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+
+            benchmark_get_cycle();
+            gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
+                          mat_B, ldB, l1_gemm_l.TB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
+            benchmark_get_cycle();
         }
+        else if (l1_gemm_l.TA && l1_gemm_l.TB) {
+            volatile uint32_t A_offset = compute_id * l1_gemm_l.dtype;
+            volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
+            volatile uint32_t ldA = (l1_gemm_l.K + MAT_ROW_PADDING);
+            volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
+            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+
+            benchmark_get_cycle();
+            gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
+                          mat_B, ldB, l1_gemm_l.TB,
+                          &mat_C[C_offset], ldC,
+                          l1_gemm_l.ALPHA, setup_SSR);
+            benchmark_get_cycle();
+        }
+        snrt_cluster_hw_barrier();
     }
     else {
         snrt_cluster_hw_barrier();
     }
     snrt_cluster_hw_barrier();
 
-    return 0;
+    if (compute_id == 0) {
+        for (uint32_t m = 0; m < l1_gemm_l.M; m++) {
+            double checksum = gemm_checksum[m];
+            double sum = 0.0;
+            for (uint32_t n = 0; n < l1_gemm_l.N; n++) {
+                sum += ((double *)mat_C)[m * l1_gemm_l.N + n];
+            }
+            if (fabs(sum - checksum) > 0.001) {
+                        errors++;
+            }
+        }
+    }
+
+    return errors;
 }
