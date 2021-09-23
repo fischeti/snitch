@@ -135,7 +135,7 @@ fpga:
 NUM_CLUSTERS			= 1
 NUM_CORES				= 9
 
-APP 					= net-gemm
+APP 					?= net-gemm
 
 
 run-sim:

@@ -102,7 +102,7 @@ clean:
 
 .PHONY: clean vlt.build vsim.build all
 
-APP 					= net-gemm
+APP 					?= net-gemm
 
 
 run-sim:
