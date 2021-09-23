@@ -66,17 +66,25 @@ void conv2d_layer(layer l) {
     int32_t oh_prev = -1;
     int32_t ow_prev = -1;
 
-    snrt_global_barrier();
+    l.TA = 0;
+    l.TB = 1;
+
+    // snrt_global_barrier();
+
+    benchmark_get_cycle();
 
     // Distribute output channels across clusters
     for (uint32_t co = cluster_id*compute_num; co < l.CO; co+=cluster_num*compute_num){
 
-
         // Tile CI dimension
         for (uint32_t ci = 0; ci < l.CI; ci+= l.TILE_CI) {
 
+            benchmark_get_cycle();
+
             // Load weights in the beginning
             if (snrt_is_dm_core()) {
+
+                snrt_dma_start_tracking();
 
                 // Weights are stored in CO x FH x FW x CI format with additional padding
                 // (CI + 1) to prevent banking conflicts
@@ -99,7 +107,11 @@ void conv2d_layer(layer l) {
                     }
                 }
                 snrt_dma_wait_all();
+
+                snrt_dma_stop_tracking();
+
             }
+            benchmark_get_cycle();
 
             // Iterate over pixels, outer loop iterates over tiles of columns in feature map,
             // inner loop iterates over rows. Each core processes one pixel at a time.
@@ -149,6 +161,8 @@ void conv2d_layer(layer l) {
                                 while (synch_flag[write_buf]);
                             }
                         }
+
+                        snrt_dma_start_tracking();
 
                         // The input feature map needs to be loaded from main memory in the following cases:
                         // 1) cluster2cluster communication is not enabled
@@ -217,12 +231,15 @@ void conv2d_layer(layer l) {
 
                         }
 
+                        snrt_dma_stop_tracking();
+
                         // New data is produced
                         if (l.cluster2cluster) {
                             synch_flag[write_buf] = 1;
                             // printf("Cluster %d setting synch flag %p\n", cluster_id, &synch_flag[write_buf]);
                         }
 
+                        snrt_dma_start_tracking();
 
                         // Reshuffle and write data to the im2col buffer by the DMA
                         for (uint32_t n = 0; n < compute_num; n++) {
@@ -240,9 +257,12 @@ void conv2d_layer(layer l) {
                             }
                         }
 
+                        snrt_dma_stop_tracking();
+
                         // Wait for im2col transform to end, and synchronize with compute cores
                         snrt_dma_wait_all();
                         snrt_cluster_sw_barrier();
+                        benchmark_get_cycle();
 
                         // Transfer back the output feature maps
                         if (oh_prev + ow_prev >= 0) {
@@ -269,7 +289,9 @@ void conv2d_layer(layer l) {
                     if (snrt_is_compute_core()) {
 
                         // Wait until DMA core has finished the im2col transform
+                        benchmark_get_cycle();
                         snrt_cluster_sw_barrier();
+                        benchmark_get_cycle();
 
                         // Each core performs a matrix multiplication on the im2col buffer
                         // Of size (1 x FHxFWxCI) x (FHxFWxCI x 8), 8 represents CO and is the
@@ -277,19 +299,20 @@ void conv2d_layer(layer l) {
                         if (ow + compute_id < l.OW) {
 
                             uint32_t setup_SSR = (ci == 0 && ow == 0 && _oh == 0)? 1 : 0;
+                            uint32_t alpha = (ci != 0 && l.TILE_CI != l.CI);
 
                             if (ci != 0 && l.TILE_CI != l.CI) {
-                                gemm_fp64_tb_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
-                                                 &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0,
-                                                 weights, l.FH*l.FW*l.TILE_CI+1,
-                                                 &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 1.0, setup_SSR);
+                                gemm_fp64_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
+                                                 &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0, l.TA,
+                                                 weights, l.FH*l.FW*l.TILE_CI+1, l.TB,
+                                                 &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 0, setup_SSR);
 
                             }
                             else {
-                                gemm_fp64_tb_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
-                                                 &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0,
-                                                 weights, l.FH*l.FW*l.TILE_CI+1,
-                                                 &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 0.0, setup_SSR);
+                                gemm_fp64_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
+                                                   &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0, l.TA,
+                                                   weights, l.FH*l.FW*l.TILE_CI+1, l.TB,
+                                                   &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 1, setup_SSR);
 
                             }
 
@@ -319,5 +342,5 @@ void conv2d_layer(layer l) {
         }
     }
 
-    snrt_global_barrier();
+    // snrt_global_barrier();
 }
