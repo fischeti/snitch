@@ -36,15 +36,16 @@ module axi_dma_backend #(
     ///              A value of 0 will cause the backend to discard the transfer prematurely
     /// - `src_cache`, `dst_cache`: the configuration of the cache fields in the AX beats
     /// - `src_burst`, `dst_burst`: currently only incremental bursts are supported (`2'b01`)
-    /// - `decouple_rw`: if set to true, there is no longer exactly one AXI write_request issued for 
+    /// - `decouple_rw`: if set to true, there is no longer exactly one AXI write_request issued for
     ///   every read request. This mode can improve performance of unaligned transfers when crossing
     ///   the AXI page boundaries.
     /// - `deburst`: if set, the DMA will split all bursts in single transfers
     parameter type         burst_req_t = logic,
+    parameter type         dma_tracking_t = logic,
     /// Give each DMA backend a unique id
     parameter int unsigned DmaIdWidth = -1,
     /// Enable or disable tracing
-    parameter bit          DmaTracing = 0        
+    parameter bit          DmaTracing = 0
 
 ) (
     /// Clock
@@ -66,9 +67,11 @@ module axi_dma_backend #(
     /// Event: a 1D burst request has completed
     output logic                    trans_complete_o,
     /// unique DMA id
-    input  logic [DmaIdWidth-1:0]   dma_id_i
+    input  logic [DmaIdWidth-1:0]   dma_id_i,
+    /// Track DMA
+    input logic [4:0]               dma_tracking_i
 );
-    
+
     /// Number of bytes per word
     localparam int unsigned StrobeWidth = DataWidth / 8;
     /// Offset width
@@ -79,7 +82,7 @@ module axi_dma_backend #(
     typedef logic [  AddrWidth-1:0] addr_t;
     /// AXI ID Type
     typedef logic [    IdWidth-1:0] axi_id_t;
-    
+
     /// id: AXI id
     /// last: last transaction in burst
     /// address: address of burst
@@ -131,13 +134,13 @@ module axi_dma_backend #(
 
     //--------------------------------------
     // Assertions
-    //-------------------------------------- 
+    //--------------------------------------
     // pragma translate_off
     `ifndef VERILATOR
     initial begin
-        assert (DataWidth inside {16, 32, 64, 128, 256, 512, 1024}) 
+        assert (DataWidth inside {16, 32, 64, 128, 256, 512, 1024})
             else $fatal(1, "16 <= DataWidth <= 1024");
-        assert (AddrWidth >= 32 & AddrWidth <=   64) 
+        assert (AddrWidth >= 32 & AddrWidth <=   64)
             else $fatal(1, " 8 <= AddrWidth <=   64");
     end
     `endif
@@ -145,7 +148,7 @@ module axi_dma_backend #(
 
     //--------------------------------------
     // Request Fifo
-    //-------------------------------------- 
+    //--------------------------------------
     burst_req_t  burst_req;
     logic        burst_req_empty;
     logic        burst_req_pop;
@@ -167,13 +170,13 @@ module axi_dma_backend #(
         .push_i    ( valid_i && ready_o ),
         .data_o    ( burst_req          ),
         .pop_i     ( burst_req_pop      )
-    ); 
+    );
 
     assign ready_o = !burst_req_full;
 
     //--------------------------------------
     // Burst reshaper
-    //-------------------------------------- 
+    //--------------------------------------
     write_req_t  write_req;
     read_req_t   read_req;
 
@@ -206,7 +209,7 @@ module axi_dma_backend #(
 
     //--------------------------------------
     // Data mover
-    //-------------------------------------- 
+    //--------------------------------------
     axi_dma_data_mover #(
         .DataWidth      ( DataWidth       ),
         .ReqFifoDepth   ( AxReqFifoDepth  ),
@@ -235,32 +238,32 @@ module axi_dma_backend #(
 
     //--------------------------------------
     // Tracer
-    //-------------------------------------- 
+    //--------------------------------------
     //pragma translate_off
     `ifndef SYNTHESYS
     `ifndef VERILATOR
     generate if (DmaTracing) begin : gen_dma_tracer
         string fn;
         integer f;
-    
+
         logic [DataWidth/8-1:0][BufferDepth-1:0][7:0] buffer_mem;
-    
+
         // open file
         initial begin
             #1;
-            $sformat(fn, "dma_trace_%05x.log", dma_id_i);
+            $sformat(fn, "logs/dma_trace_%05x.log", dma_id_i);
             f = $fopen(fn, "w");
             $display("[Tracer] Logging DMA %d to %s", dma_id_i, fn);
         end
-    
+
         // access buffer memory storage
         for(genvar d = 0; d < BufferDepth; d++) begin
             for(genvar i = 0; i < DataWidth/8-1; i++) begin
-                assign buffer_mem[i][d] = 
+                assign buffer_mem[i][d] =
                     i_axi_dma_data_mover.i_axi_dma_data_path.fifo_buffer[i].i_fifo_buffer.mem_q[d];
             end
         end
-    
+
         // do the tracing
         always_ff @(posedge clk_i) begin : proc_tracer
             // dict
@@ -270,10 +273,10 @@ module axi_dma_backend #(
             automatic longint               dma_data_mover  [string];
             automatic logic [DataWidth-1:0] dma_data_path   [string];
             automatic string                dma_string;
-    
+
             // start of python dict
             dma_string = "{";
-    
+
             // we do not dump while reset
             if (rst_ni) begin
 
@@ -291,8 +294,8 @@ module axi_dma_backend #(
                     "AxReqFifoDepth" : AxReqFifoDepth,
                     "TransFifoDepth" : TransFifoDepth,
                     "BufferDepth"    : BufferDepth
-                }; 
-    
+                };
+
                 //--------------------------------------
                 // Backend
                 //--------------------------------------
@@ -311,12 +314,13 @@ module axi_dma_backend #(
                     "backend_burst_req_valid"             : valid_i,
                     "backend_burst_req_ready"             : ready_o,
                     "backend_idle"                        : backend_idle_o,
-                    "transfer_completed"                  : trans_complete_o
+                    "transfer_completed"                  : trans_complete_o,
+                    "tracking_status"                     : dma_tracking_i
                 };
-    
+
                 //--------------------------------------
                 // Burst Reshaper
-                //-------------------------------------- 
+                //--------------------------------------
                 dma_burst_res = '{
                     // burst request
                     "burst_reshaper_burst_req_id"          : i_axi_dma_burst_reshaper.burst_req_i.id,
@@ -390,10 +394,10 @@ module axi_dma_backend #(
                     // "burst_reshaper_w_finish"              : i_axi_dma_burst_reshaper.w_finish,
                     // "burst_reshaper_w_addr_offset"         : i_axi_dma_burst_reshaper.w_addr_offset
                 };
-    
+
                 //--------------------------------------
                 // Data Mover
-                //-------------------------------------- 
+                //--------------------------------------
                 dma_data_mover = '{
                     // AR emitter
                     // "data_mover_ar_emitter_full"                 : i_axi_dma_data_mover.ar_emitter_full,
@@ -441,7 +445,7 @@ module axi_dma_backend #(
 
                 //--------------------------------------
                 // Data Path
-                //-------------------------------------- 
+                //--------------------------------------
                 dma_data_path = '{
                     // r channel
                     "data_path_r_dp_valid"                       : i_axi_dma_data_mover.i_axi_dma_data_path.r_dp_valid_i,
@@ -472,45 +476,46 @@ module axi_dma_backend #(
                     "data_path_w_first_mask"                     : i_axi_dma_data_mover.i_axi_dma_data_path.w_first_mask,
                     "data_path_w_last_mask"                      : i_axi_dma_data_mover.i_axi_dma_data_path.w_last_mask,
                     // barrel shifter
-                    // "data_path_buffer_in"                        : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_in,        
-                    "data_path_read_aligned_in_mask"             : i_axi_dma_data_mover.i_axi_dma_data_path.read_aligned_in_mask,        
-                    "data_path_write_aligned_in_mask"            : i_axi_dma_data_mover.i_axi_dma_data_path.in_mask,        
+                    // "data_path_buffer_in"                        : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_in,
+                    "data_path_read_aligned_in_mask"             : i_axi_dma_data_mover.i_axi_dma_data_path.read_aligned_in_mask,
+                    "data_path_write_aligned_in_mask"            : i_axi_dma_data_mover.i_axi_dma_data_path.in_mask,
                     // in mask generation
-                    // "data_path_is_first_r"                       : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_r,                        
-                    // "data_path_is_first_r_d"                     : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_r_d,                        
+                    // "data_path_is_first_r"                       : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_r,
+                    // "data_path_is_first_r_d"                     : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_r_d,
                     // "data_path_is_first_r_d"                     : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_r_d,
                     // read control
-                    // "data_path_buffer_full"                      : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_full,                                        
-                    // "data_path_buffer_push"                      : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_push,                                        
-                    // "data_path_full"                             : i_axi_dma_data_mover.i_axi_dma_data_path.full,                                        
-                    "data_path_push"                             : i_axi_dma_data_mover.i_axi_dma_data_path.push, 
+                    // "data_path_buffer_full"                      : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_full,
+                    // "data_path_buffer_push"                      : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_push,
+                    // "data_path_full"                             : i_axi_dma_data_mover.i_axi_dma_data_path.full,
+                    "data_path_push"                             : i_axi_dma_data_mover.i_axi_dma_data_path.push,
                     // out mask generation
-                    "data_path_out_mask"                         : i_axi_dma_data_mover.i_axi_dma_data_path.out_mask,                        
-                    // "data_path_is_first_w"                       : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_w,                        
-                    // "data_path_is_last_w"                        : i_axi_dma_data_mover.i_axi_dma_data_path.is_last_w,   
+                    "data_path_out_mask"                         : i_axi_dma_data_mover.i_axi_dma_data_path.out_mask,
+                    // "data_path_is_first_w"                       : i_axi_dma_data_mover.i_axi_dma_data_path.is_first_w,
+                    // "data_path_is_last_w"                        : i_axi_dma_data_mover.i_axi_dma_data_path.is_last_w,
                     // write control
-                    // "data_path_buffer_out"                       : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_out,                         
-                    // "data_path_buffer_empty"                     : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_empty,                         
-                    // "data_path_buffer_pop"                       : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_pop,                         
-                    // "data_path_w_num_beats"                      : i_axi_dma_data_mover.i_axi_dma_data_path.w_num_beats_q,                         
-                    // "data_path_w_cnt_valid"                      : i_axi_dma_data_mover.i_axi_dma_data_path.w_cnt_valid_q,                         
-                    "data_path_pop"                              : i_axi_dma_data_mover.i_axi_dma_data_path.pop// ,                         
-                    // "data_path_write_happening"                  : i_axi_dma_data_mover.i_axi_dma_data_path.write_happening,                         
-                    // "data_path_ready_to_write"                   : i_axi_dma_data_mover.i_axi_dma_data_path.ready_to_write,                        
-                    // "data_path_first_possible"                   : i_axi_dma_data_mover.i_axi_dma_data_path.first_possible,                        
-                    // "data_path_buffer_clean"                     : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_clean                       
+                    // "data_path_buffer_out"                       : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_out,
+                    // "data_path_buffer_empty"                     : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_empty,
+                    // "data_path_buffer_pop"                       : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_pop,
+                    // "data_path_w_num_beats"                      : i_axi_dma_data_mover.i_axi_dma_data_path.w_num_beats_q,
+                    // "data_path_w_cnt_valid"                      : i_axi_dma_data_mover.i_axi_dma_data_path.w_cnt_valid_q,
+                    "data_path_pop"                              : i_axi_dma_data_mover.i_axi_dma_data_path.pop// ,
+                    // "data_path_write_happening"                  : i_axi_dma_data_mover.i_axi_dma_data_path.write_happening,
+                    // "data_path_ready_to_write"                   : i_axi_dma_data_mover.i_axi_dma_data_path.ready_to_write,
+                    // "data_path_first_possible"                   : i_axi_dma_data_mover.i_axi_dma_data_path.first_possible,
+                    // "data_path_buffer_clean"                     : i_axi_dma_data_mover.i_axi_dma_data_path.buffer_clean
                 };
-    
+
                 // write dicts to string
                 foreach(dma_meta[key])       dma_string = $sformatf("%s'%s': 0x%0x, ", dma_string, key, dma_meta[key]);
                 // only write bulk of data if dma is actually active :)
                 if (!backend_idle_o | valid_i & ready_o | i_axi_dma_burst_reshaper.valid_i & i_axi_dma_burst_reshaper.ready_o |
-                    i_axi_dma_burst_reshaper.burst_q.src.valid | i_axi_dma_burst_reshaper.burst_q.dst.valid |  trans_complete_o) begin
+                    i_axi_dma_burst_reshaper.burst_q.src.valid | i_axi_dma_burst_reshaper.burst_q.dst.valid |  trans_complete_o |
+                    dma_tracking_i != 0) begin
                     foreach(dma_backend[key])    dma_string = $sformatf("%s'%s': 0x%0x, ", dma_string, key, dma_backend[key]);
                     foreach(dma_burst_res[key])  dma_string = $sformatf("%s'%s': 0x%0x, ", dma_string, key, dma_burst_res[key]);
                     foreach(dma_data_mover[key]) dma_string = $sformatf("%s'%s': 0x%0x, ", dma_string, key, dma_data_mover[key]);
                     foreach(dma_data_path[key])  dma_string = $sformatf("%s'%s': 0x%0x, ", dma_string, key, dma_data_path[key]);
-    
+
                     //--------------------------------------
                     // Realign Buffer Data Store
                     //--------------------------------------

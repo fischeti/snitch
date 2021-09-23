@@ -77,6 +77,8 @@ module axi_dma_tc_snitch_fe #(
         logic             is_twod;
     } twod_req_t;
 
+    logic [4:0] dma_tracking;
+
     //--------------------------------------
     // Backend Instanciation
     //--------------------------------------
@@ -108,7 +110,8 @@ module axi_dma_tc_snitch_fe #(
         .ready_o          ( burst_req_ready     ),
         .backend_idle_o   ( backend_idle        ),
         .trans_complete_o ( oned_trans_complete ),
-        .dma_id_i         ( hart_id_i           )
+        .dma_id_i         ( hart_id_i           ),
+        .dma_tracking_i   ( dma_tracking        )
     );
 
     //--------------------------------------
@@ -238,6 +241,7 @@ module axi_dma_tc_snitch_fe #(
         // debug signal
         is_dma_op        = 1'b0;
         dma_op_name      = "Invalid";
+        dma_tracking     = 0;
 
         // decode
         if (acc_qvalid_i == 1'b1) begin
@@ -310,6 +314,8 @@ module axi_dma_tc_snitch_fe #(
                   endcase
                   dma_op_name = "DMSTAT";
                   is_dma_op   = 1'b1;
+
+                  dma_tracking = acc_qdata_op_i[24:20];
 
                   // Compose the response.
                   acc_pdata_spill.id    = acc_qid_i;
