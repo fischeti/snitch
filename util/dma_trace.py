@@ -355,7 +355,7 @@ def strb_to_bytes(strobe):
 # update performance metrics
 def update_perf_dict(trace_dict, perf_dict, r_util, w_util):
     # we do a cycle anyways
-    perf_dict['num_cycles'] += 1
+    # perf_dict['num_cycles'] += 1
 
     # active cycles
     if not trace_dict['backend_idle']:
@@ -394,7 +394,7 @@ def update_perf_dict(trace_dict, perf_dict, r_util, w_util):
 
     # utilization information
     if trace_dict['backend_burst_req_valid'] and trace_dict['backend_burst_req_ready']:
-        length = trace_dict['backend_burst_req_num_bytes'];
+        length = trace_dict['backend_burst_req_num_bytes']
         perf_dict['min_len'] = min(length, perf_dict['min_len'])
         perf_dict['tot_len'] += length
         perf_dict['max_len'] = max(length, perf_dict['max_len'])
@@ -403,10 +403,10 @@ def update_perf_dict(trace_dict, perf_dict, r_util, w_util):
     if trace_dict['burst_reshaper_burst_req_valid'] and trace_dict['burst_reshaper_burst_req_ready']:
         perf_dict['min_r_util'] = min(perf_dict['min_r_util'], r_util)
         perf_dict['max_r_util'] = max(perf_dict['max_r_util'], r_util)
-        perf_dict['tot_r_util'] += r_util
+        perf_dict['tot_r_util'] += r_util * trace_dict['backend_burst_req_num_bytes']
         perf_dict['min_w_util'] = min(perf_dict['min_w_util'], w_util)
         perf_dict['max_w_util'] = max(perf_dict['max_w_util'], w_util)
-        perf_dict['tot_w_util'] += w_util
+        perf_dict['tot_w_util'] += w_util * trace_dict['backend_burst_req_num_bytes']
 
 
 def safe_divide(n, d):
@@ -414,7 +414,7 @@ def safe_divide(n, d):
 
 
 # print performance statistics
-def print_perf_stats(perf_dict, period, interval):
+def print_perf_stats(perf_dict, trace_dict, period, interval):
     if interval:
         res = '\nPerformance Statistic Section [{},{}]\n-----------------------------\n\n'.format(*interval)
     else:
@@ -440,15 +440,15 @@ def print_perf_stats(perf_dict, period, interval):
                                                            perf_dict['num_act_cycles'] / perf_dict['num_cycles'])
     res += '\n'
 
-    res += 'Minimal Read Utilization:  {:12.4f}%\n'.format(perf_dict['min_r_util'] * 100.0)
-    res += 'Average Read Utilization:  {:12.4f}%\n'.format(safe_divide(perf_dict['tot_r_util'], perf_dict['num_transfers']) * 100.0)
-    res += 'Maximum Read Utilization:  {:12.4f}%\n'.format(perf_dict['max_r_util'] * 100.0)
-    res += '\n'
+    # res += 'Minimal Read Utilization:  {:12.4f}%\n'.format(perf_dict['min_r_util'] * 100.0)
+    # res += 'Average Read Utilization:  {:12.4f}%\n'.format(safe_divide(perf_dict['tot_r_util'], perf_dict['num_cycles']) * 100.0)
+    # res += 'Maximum Read Utilization:  {:12.4f}%\n'.format(perf_dict['max_r_util'] * 100.0)
+    # res += '\n'
 
-    res += 'Minimal Write Utilization: {:12.4f}%\n'.format(perf_dict['min_w_util'] * 100.0)
-    res += 'Average Write Utilization: {:12.4f}%\n'.format(safe_divide(perf_dict['tot_w_util'], perf_dict['num_transfers']) * 100.0)
-    res += 'Maximum Write Utilization: {:12.4f}%\n'.format(perf_dict['max_w_util'] * 100.0)
-    res += '\n'
+    # res += 'Minimal Write Utilization: {:12.4f}%\n'.format(perf_dict['min_w_util'] * 100.0)
+    # res += 'Average Write Utilization: {:12.4f}%\n'.format(safe_divide(perf_dict['tot_w_util'], perf_dict['num_cycles']) * 100.0)
+    # res += 'Maximum Write Utilization: {:12.4f}%\n'.format(perf_dict['max_w_util'] * 100.0)
+    # res += '\n'
 
     run_time     = period / 1000000000 * perf_dict['num_cycles']
     freqency_mhz = 1.0 / period * 1000
@@ -462,6 +462,10 @@ def print_perf_stats(perf_dict, period, interval):
     res += 'Active Read Speed:         {:12.4f} MiB/s @ {:.2f} MHz\n'.format(safe_divide(perf_dict['ar_bytes_req'], active_time) / (1024 * 1024), freqency_mhz)
     res += 'Active Write Speed (Bus):  {:12.4f} MiB/s @ {:.2f} MHz\n'.format(safe_divide(perf_dict['aw_bytes_req'], active_time) / (1024 * 1024), freqency_mhz)
     res += 'Active Write Speed:        {:12.4f} MiB/s @ {:.2f} MHz\n'.format(safe_divide(perf_dict['bytes_written'], active_time) / (1024 * 1024), freqency_mhz)
+    res += '\n'
+
+    res += 'Average Read BW Utilization  {:12.4f}%\n'.format(perf_dict['ar_bytes_req'] / trace_dict['DataWidth'] / 8 / perf_dict['num_cycles'] * 100)
+    res += 'Average WRITE BW Utilization {:12.4f}%\n'.format(perf_dict['aw_bytes_req'] / trace_dict['DataWidth'] / 8 / perf_dict['num_cycles'] * 100)
     res += '\n'
 
     res += 'Wait for Read:             {:12.4f}%\n'.format(safe_divide(perf_dict['wait_for_read'], perf_dict['num_act_cycles']) * 100.0)
@@ -498,7 +502,7 @@ def get_bus_util(new_r_reqs, new_w_reqs, new_reads, new_writes, bus_width):
 
 
 # do the dma tracing
-def trace_file (filename, stop_on_error = True, silent = False, time_interval = []):
+def trace_file (filename, stop_on_error = True, silent = False):
 
     # the model divides transfers in "instructions". everything is in-order
     # keep lists of these instructions
@@ -512,6 +516,7 @@ def trace_file (filename, stop_on_error = True, silent = False, time_interval = 
 
     # create an empty perf dict:
     perf_dict = { 'num_cycles'    : 0,
+                  'cycle'         : 0,
                   'num_act_cycles': 0,
                   'num_aw'        : 0,
                   'num_ar'        : 0,
@@ -535,13 +540,14 @@ def trace_file (filename, stop_on_error = True, silent = False, time_interval = 
                   'min_w_util'    : sys.maxsize,
                   'max_w_util'    : 0,
                   'tot_w_util'    : 0,
+                  'DataWidth'     : 0
                 }
 
     # Section tracking
     in_section = False
     section_interval = []
-    section_perf_dict = perf_dict
-    reset_perf_dict = perf_dict
+    section_perf_dict = perf_dict.copy()
+    reset_perf_dict = perf_dict.copy()
 
     # iterate over file
     with open(filename, 'r') as trace_file:
@@ -574,6 +580,10 @@ def trace_file (filename, stop_on_error = True, silent = False, time_interval = 
                 second = True
                 period = time
 
+            perf_dict['num_cycles'] += 1
+            if in_section:
+                section_perf_dict['num_cycles'] += 1
+
             # reject inactive cycles
             if 'backend_idle' not in trace_dict:
                 continue
@@ -585,8 +595,8 @@ def trace_file (filename, stop_on_error = True, silent = False, time_interval = 
             if trace_dict['tracking_status'] == 3:
                 in_section = False
                 section_interval.append(time)
-                print(print_perf_stats(section_perf_dict, period, section_interval[-2:]))
-                section_perf_dict = reset_perf_dict
+                print(print_perf_stats(section_perf_dict, trace_dict, period, section_interval[-2:]))
+                section_perf_dict = reset_perf_dict.copy()
 
             # new burst request arrives
             if trace_dict['backend_burst_req_valid'] and trace_dict['backend_burst_req_ready']:
@@ -653,7 +663,7 @@ def trace_file (filename, stop_on_error = True, silent = False, time_interval = 
                 break
 
     # finally print perf statistics
-    print(print_perf_stats(perf_dict, period, None))
+    print(print_perf_stats(perf_dict, trace_dict, period, None))
 
 
 # argparser
@@ -665,11 +675,7 @@ parser.add_argument('--silent', dest='silent', action='store_true',
                     help='only print statistics')
 parser.add_argument('--continue-on-error', dest='coe', action='store_true',
                     help='continue tracing when encountering error')
-parser.add_argument('--start', dest='start', type=int,
-                    help='start tracing at this time step', default=0)
-parser.add_argument('--end', dest='end', type=int,
-                    help='end tracing at this time step', default=sys.maxsize)
 args = parser.parse_args()
 
 # run the main
-trace_file(args.dma_trace_log, stop_on_error = not args.coe, silent = args.silent, time_interval=[args.start, args.end])
+trace_file(args.dma_trace_log, stop_on_error = not args.coe, silent = args.silent)
