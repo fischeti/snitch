@@ -5,12 +5,13 @@
 // Parameters for a single Conv2d layer
 
 {
+    kernel: "Conv2d"
     channels: {
         out: 8,
         in: 32
     }
     input_dim: {
-        height: 8,
+        height: 4,
         width: 8
     }
     filter: {

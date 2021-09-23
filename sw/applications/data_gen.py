@@ -212,6 +212,7 @@ def main():
         # convert from CHW to HWC format
         ifmap = ifmap.permute(0, 2, 3, 1)
         ofmap = ofmap.permute(0, 2, 3, 1)
+        weights = weights.permute(0, 2, 3, 1)
         kwargs = {'ifmap': ifmap, 'weights': weights, 'ofmap': ofmap}
         emit_header_file('Conv2d', **kwargs)
 
