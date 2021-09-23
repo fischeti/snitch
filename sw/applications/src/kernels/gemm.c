@@ -278,7 +278,7 @@ void gemm_fp64_ta_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                       double* A, uint32_t ldA,
                       double* B, uint32_t ldB,
-                      double*C, uint32_t ldC, double ALPHA, uint32_t setup_SSR) {
+                      double*C, uint32_t ldC, double *ALPHA, uint32_t setup_SSR) {
 
     register volatile double ft0 asm("ft0");
     register volatile double ft1 asm("ft1");
@@ -314,14 +314,14 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N/unroll; n0++) {
-            register double c0 = ALPHA*C[m*ldC + n + 0];
-            register double c1 = ALPHA*C[m*ldC + n + 1];
-            register double c2 = ALPHA*C[m*ldC + n + 2];
-            register double c3 = ALPHA*C[m*ldC + n + 3];
-            register double c4 = ALPHA*C[m*ldC + n + 4];
-            register double c5 = ALPHA*C[m*ldC + n + 5];
-            register double c6 = ALPHA*C[m*ldC + n + 6];
-            register double c7 = ALPHA*C[m*ldC + n + 7];
+            register double c0 = *ALPHA*C[m*ldC + n + 0];
+            register double c1 = *ALPHA*C[m*ldC + n + 1];
+            register double c2 = *ALPHA*C[m*ldC + n + 2];
+            register double c3 = *ALPHA*C[m*ldC + n + 3];
+            register double c4 = *ALPHA*C[m*ldC + n + 4];
+            register double c5 = *ALPHA*C[m*ldC + n + 5];
+            register double c6 = *ALPHA*C[m*ldC + n + 6];
+            register double c7 = *ALPHA*C[m*ldC + n + 7];
 
             asm volatile(
                          ".word (7 << 20)|(5 << 15)|(1 << 7)|(0b0001011 << 0) \n"
@@ -358,7 +358,7 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
         snrt_ssr_disable();
 
         for (; n < N; n++) {
-            double c = ALPHA*C[m*ldC + n];
+            double c = *ALPHA*C[m*ldC + n];
             for (uint32_t k = 0; k < K; k++) {
                 c += A[k + m*ldA] * B[k + n*ldB];
             }
@@ -377,12 +377,14 @@ void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 void gemm_fp64_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                         double* A, uint32_t ldA, uint32_t ta,
                         double* B, uint32_t ldB, uint32_t tb,
-                        double*C, uint32_t ldC, double ALPHA, uint32_t setup_SSR) {
+                        double*C, uint32_t ldC, uint32_t *ALPHA, uint32_t setup_SSR) {
 
     register volatile double ft0 asm("ft0");
     register volatile double ft1 asm("ft1");
     register volatile double ft2 asm("ft2");
     asm volatile("" : "=f"(ft0), "=f"(ft1), "=f"(ft2));
+
+    // printf("M %d, N %d, K %d\nldA %d ta %d\nldB %d tb %d\nldC %d alpha %d setup_SSR %d\n", M, N, K, ldA, ta, ldB, tb, ldC, ALPHA, setup_SSR);
 
     const uint32_t unroll = 8;
 
@@ -439,14 +441,27 @@ void gemm_fp64_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N/unroll; n0++) {
-            register double c0 = ALPHA*C[m*ldC + n + 0];
-            register double c1 = ALPHA*C[m*ldC + n + 1];
-            register double c2 = ALPHA*C[m*ldC + n + 2];
-            register double c3 = ALPHA*C[m*ldC + n + 3];
-            register double c4 = ALPHA*C[m*ldC + n + 4];
-            register double c5 = ALPHA*C[m*ldC + n + 5];
-            register double c6 = ALPHA*C[m*ldC + n + 6];
-            register double c7 = ALPHA*C[m*ldC + n + 7];
+
+            register double c[unroll];
+            if (ALPHA) {
+                c[0] = C[m*ldC + n + 0];
+                c[1] = C[m*ldC + n + 1];
+                c[2] = C[m*ldC + n + 2];
+                c[3] = C[m*ldC + n + 3];
+                c[4] = C[m*ldC + n + 4];
+                c[5] = C[m*ldC + n + 5];
+                c[6] = C[m*ldC + n + 6];
+                c[7] = C[m*ldC + n + 7];
+            } else {
+                c[0] = 0.0;
+                c[1] = 0.0;
+                c[2] = 0.0;
+                c[3] = 0.0;
+                c[4] = 0.0;
+                c[5] = 0.0;
+                c[6] = 0.0;
+                c[7] = 0.0;
+            }
 
             asm volatile(
                          "frep.o %[n_frep], 8, 0, 0 \n"
@@ -458,32 +473,37 @@ void gemm_fp64_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                          "fmadd.d %[c5], ft0, ft1, %[c5] \n"
                          "fmadd.d %[c6], ft0, ft1, %[c6] \n"
                          "fmadd.d %[c7], ft0, ft1, %[c7] \n"
-                         : [ c0 ] "+f"(c0),
-                           [ c1 ] "+f"(c1),
-                           [ c2 ] "+f"(c2),
-                           [ c3 ] "+f"(c3),
-                           [ c4 ] "+f"(c4),
-                           [ c5 ] "+f"(c5),
-                           [ c6 ] "+f"(c6),
-                           [ c7 ] "+f"(c7)
+                         : [ c0 ] "+f"(c[0]),
+                           [ c1 ] "+f"(c[1]),
+                           [ c2 ] "+f"(c[2]),
+                           [ c3 ] "+f"(c[3]),
+                           [ c4 ] "+f"(c[4]),
+                           [ c5 ] "+f"(c[5]),
+                           [ c6 ] "+f"(c[6]),
+                           [ c7 ] "+f"(c[7])
                          : [ n_frep ] "r"(K-1)
                          :"ft0", "ft1");
 
-            C[m*ldC + n + 0] = c0;
-            C[m*ldC + n + 1] = c1;
-            C[m*ldC + n + 2] = c2;
-            C[m*ldC + n + 3] = c3;
-            C[m*ldC + n + 4] = c4;
-            C[m*ldC + n + 5] = c5;
-            C[m*ldC + n + 6] = c6;
-            C[m*ldC + n + 7] = c7;
+            C[m*ldC + n + 0] = c[0];
+            C[m*ldC + n + 1] = c[1];
+            C[m*ldC + n + 2] = c[2];
+            C[m*ldC + n + 3] = c[3];
+            C[m*ldC + n + 4] = c[4];
+            C[m*ldC + n + 5] = c[5];
+            C[m*ldC + n + 6] = c[6];
+            C[m*ldC + n + 7] = c[7];
             n += unroll;
         }
 
         snrt_ssr_disable();
 
         for (; n < N; n++) {
-            double c = ALPHA*C[m*ldC + n];
+            double c;
+            if (ALPHA) {
+                c = C[m*ldC + n];
+            } else {
+                c = 0.0;
+            }
             for (uint32_t k = 0; k < K; k++) {
                 c += A[k + m*ldA] * B[k + n*ldB];
             }

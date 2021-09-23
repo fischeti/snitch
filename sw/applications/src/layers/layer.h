@@ -51,7 +51,7 @@ struct layer_struct
     uint32_t ldB;
     uint32_t ldC;
 
-    double ALPHA;
+    uint32_t ALPHA;
 
     // CONV2D
     uint32_t CO;

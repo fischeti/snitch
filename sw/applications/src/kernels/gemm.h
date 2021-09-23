@@ -32,12 +32,12 @@ void gemm_fp64_ta_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
 void gemm_fp64_tb_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                       double* A, uint32_t ldA,
                       double* B, uint32_t ldB,
-                      double*C, uint32_t ldC, double ALPHA, uint32_t setup_SSR);
+                      double*C, uint32_t ldC, double *ALPHA, uint32_t setup_SSR);
 
 void gemm_fp64_ssr_frep(uint32_t M, uint32_t N, uint32_t K,
                         double* A, uint32_t ldA, uint32_t ta,
                         double* B, uint32_t ldB, uint32_t tb,
-                        double*C, uint32_t ldC, double ALPHA, uint32_t setup_SSR);
+                        double*C, uint32_t ldC, uint32_t *ALPHA, uint32_t setup_SSR);
 
 void gemm_fp64_tb_ssr_frep_vec(uint32_t M, uint32_t N, uint32_t K,
                           float* A, uint32_t ldA,
