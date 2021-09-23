@@ -7,7 +7,7 @@
 #include "gemm.h"
 #include "utils.h"
 #include "snrt.h"
-// #include "printf.h"
+#include "printf.h"
 #include "perf_cnt.h"
 #include "math.h"
 
@@ -16,11 +16,12 @@
 
 int main() {
 
-    layer l1_gemm_l = gemm_l;
 
-    l1_gemm_l.A = (void *)gemm_A_dram;
-    l1_gemm_l.B = (void *)gemm_B_dram;
-    l1_gemm_l.C = (void *)gemm_C_dram;
+    gemm_l.A = (void *)gemm_A_dram;
+    gemm_l.B = (void *)gemm_B_dram;
+    gemm_l.C = (void *)gemm_C_dram;
+
+    const layer l1_gemm_l = gemm_l;
 
     volatile uint32_t cluster_num = snrt_cluster_num();
     volatile uint32_t cluster_id = snrt_cluster_idx();
@@ -77,7 +78,7 @@ int main() {
             volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
-            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+            volatile uint32_t ldC = l1_gemm_l.N * compute_num;
 
             benchmark_get_cycle();
             gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
@@ -92,7 +93,7 @@ int main() {
             volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = compute_num * (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
-            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+            volatile uint32_t ldC = l1_gemm_l.N * compute_num;
 
             benchmark_get_cycle();
             if (l1_gemm_l.dtype == FP64) {
@@ -109,20 +110,13 @@ int main() {
                           l1_gemm_l.ALPHA, setup_SSR);
             }
             benchmark_get_cycle();
-            gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
-                          &mat_A[A_offset], ldA, l1_gemm_l.TA,
-                          mat_B, ldB, l1_gemm_l.TB,
-                          &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
-            benchmark_get_cycle();
-
         }
         else if (l1_gemm_l.TA && !l1_gemm_l.TB) {
             volatile uint32_t A_offset = compute_id * l1_gemm_l.dtype;
             volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
-            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+            volatile uint32_t ldC = l1_gemm_l.N * compute_num;
 
             benchmark_get_cycle();
             gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
@@ -137,7 +131,7 @@ int main() {
             volatile uint32_t C_offset = compute_id * l1_gemm_l.N * l1_gemm_l.dtype;
             volatile uint32_t ldA = (l1_gemm_l.K + MAT_ROW_PADDING);
             volatile uint32_t ldB = l1_gemm_l.K + MAT_ROW_PADDING;
-            volatile uint32_t ldC = l1_gemm_l.K * compute_num;
+            volatile uint32_t ldC = l1_gemm_l.N * compute_num;
 
             benchmark_get_cycle();
             gemm_fp64_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
