@@ -257,10 +257,10 @@ void conv2d_layer(layer l) {
                             }
                         }
 
-                        snrt_dma_stop_tracking();
 
                         // Wait for im2col transform to end, and synchronize with compute cores
                         snrt_dma_wait_all();
+                        snrt_dma_stop_tracking();
                         snrt_cluster_sw_barrier();
                         benchmark_get_cycle();
 
