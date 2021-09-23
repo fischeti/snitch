@@ -103,7 +103,7 @@
         // Xdiv_sqrt: true,
     },
     dma_core_template: {
-        isa: "rv32ima",
+        isa: "rv32imafd",
         // Xdiv_sqrt: true,
         # isa: "rv32ema",
         xdma: true
