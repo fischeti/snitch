@@ -81,9 +81,6 @@ module snitch_cluster_peripheral
   // Enable icache prefetch
   assign icache_prefetch_enable_o = reg2hw.icache_prefetch_enable.q;
 
-  // Enable icache prefetch
-  assign icache_prefetch_enable_o = reg2hw.icache_prefetch_enable.q;
-
   // Continuously assign the perf values.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_assign
     assign hw2reg.perf_counter[i].d = perf_counter_q[i];
