@@ -12,19 +12,19 @@
 
 int main() {
 
-    batchnorm_l.ifmap = (double*)ifmap_dram;
-    batchnorm_l.ofmap = (double*)ofmap_dram;
-    batchnorm_l.gamma = (double*)weights0_dram;
-    batchnorm_l.beta = (double*)weights1_dram;
+    batchnorm_l.ifmap = (double *)batchnorm_ifmap_dram;
+    batchnorm_l.ofmap = (double *)batchnorm_ofmap_dram;
+    batchnorm_l.gamma = (double *)batchnorm_gamma_dram;
+    batchnorm_l.beta = (double *)batchnorm_beta_dram;
     batchnorm_l.TILE_CI = 32;
 
     batchnorm_layer(batchnorm_l);
 
     snrt_global_barrier();
 
-    check_layer(batchnorm_l, (double*)checksum);
+    uint32_t errors = check_layer(batchnorm_l, (double*)batchnorm_checksum);
 
     snrt_global_barrier();
 
-    return 0;
+    return errors;
 }

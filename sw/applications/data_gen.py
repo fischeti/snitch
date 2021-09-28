@@ -24,9 +24,6 @@ def array_to_cstr(a):
 
 def emit_header_file(layer_type: str, **kwargs):
 
-    # n, ih, iw, ci = ifmap.shape
-    # _, oh, ow, co = ofmap.shape
-
     file_path = pathlib.Path(__file__).parent / 'data'
     emit_str = ''
 
@@ -36,34 +33,12 @@ def emit_header_file(layer_type: str, **kwargs):
     elif layer_type == 'GEMM':
         file = file_path / 'data_gemm.h'
         emit_str += emit_GEMM_layer(**kwargs)
+
+    elif layer_type == 'BatchNorm':
+        file = file_path / 'data_batchnorm.h'
+        emit_str += emit_batchnorm_layer(**kwargs)
     with file.open('w') as f:
         f.write(emit_str)
-    #     # weights = None
-
-    # file_path = os.path.dirname(sys.argv[0]) + '/include/'
-
-    # with open(file_path + f'data_{layer_type.__name__[:-2].lower()}.h', 'w') as fd:
-    #     fd.write('#include "layer.h"\n\n')
-    #     fd.write(f'layer {layer_type.__name__[:-2].lower()}_l = {{\n')
-    #     fd.write(f'\t.CO = {co},\n')
-    #     fd.write(f'\t.CI = {ci},\n')
-    #     fd.write(f'\t.IH = {ih},\n')
-    #     fd.write(f'\t.IW = {iw},\n')
-    #     fd.write(f'\t.OH = {oh},\n')
-    #     fd.write(f'\t.OW = {ow},\n')
-    #     fd.write(f'\t.FH = {fh},\n')
-    #     fd.write(f'\t.FW = {fw}\n')
-    #     fd.write('}};\n\n\n')
-
-    #     fd.write(f'static double result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n')
-    #     fd.write(f'static double checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n')
-    #     fd.write(f'static double ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n')
-    #     for i, w in enumerate(weights):
-    #         fd.write(f'static double weights{i}_dram')
-    #         for s in w.shape:
-    #             fd.write(f'[{s}]')
-    #         fd.write(' = ' + array_to_cstr(w) + ';\n\n\n')
-    #     fd.write(f'static double ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n')
 
 
 def emit_conv2d_layer(name='conv2d', **kwargs):
@@ -144,6 +119,37 @@ def emit_GEMM_layer(name='gemm', **kwargs):
     return layer_str
 
 
+def emit_batchnorm_layer(name='batchnorm', **kwargs):
+
+    ifmap = kwargs['ifmap']
+    ofmap = kwargs['ofmap']
+    beta = kwargs['beta']
+    gamma = kwargs['gamma']
+
+    n, ih, iw, ci = ifmap.shape
+    _, oh, ow, co = ofmap.shape
+
+    layer_str = ''
+    layer_str += '#include "layer.h"\n\n'
+    layer_str += f'layer {name}_l = {{\n'
+    layer_str += f'\t.CO = {co},\n'
+    layer_str += f'\t.CI = {ci},\n'
+    layer_str += f'\t.IH = {ih},\n'
+    layer_str += f'\t.IW = {iw},\n'
+    layer_str += f'\t.OH = {oh},\n'
+    layer_str += f'\t.OW = {ow},\n'
+    layer_str += '};\n\n\n'
+
+    layer_str += f'static double {name}_result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
+    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n'
+    layer_str += f'static double {name}_beta_dram[{ci}] = ' + array_to_cstr(beta) + ';\n\n\n'
+    layer_str += f'static double {name}_gamma_dram[{ci}] = ' + array_to_cstr(gamma) + ';\n\n\n'
+    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n'
+
+    return layer_str
+
+
 def conv2d(ifmap, weights, padding=1, stride=1):
     n, ci, ih, iw = ifmap.shape
     co, _, fh, fw = weights.shape
@@ -166,17 +172,16 @@ def max_pooling(ifmap, kernel):
 
 def batchnorm(ifmap):
     n, ci, ih, iw = ifmap.shape
-    bn = nn.BatchNorm2d(ci)
-    bn.weight = nn.Parameter(torch.randn_like(bn.weight), requires_grad=False)
-    bn.bias = nn.Parameter(torch.randn_like(bn.bias), requires_grad=False)
-    bn.running_mean = nn.Parameter(torch.randn_like(bn.running_mean), requires_grad=False)
-    bn.running_var = nn.Parameter(torch.rand_like(bn.running_var), requires_grad=False)
-    # ofmap = bn(ifmap)
-    gamma = bn.weight / torch.sqrt(bn.running_var + bn.eps)
-    beta = bn.bias - bn.running_mean * bn.weight / torch.sqrt(bn.running_var + bn.eps)
+    bn = torch.nn.BatchNorm2d(ci)
+    bn.weight.requires_grad = False
+    bn.bias.requires_grad = False
+    running_mean = torch.randn_like(bn.running_mean, requires_grad=False)
+    running_var = torch.rand_like(bn.running_var, requires_grad=False)
+    gamma = bn.weight / torch.sqrt(running_var + bn.eps)
+    beta = bn.bias - running_mean * bn.weight / torch.sqrt(running_var + bn.eps)
     ofmap = ifmap * gamma.unsqueeze(-1).unsqueeze(-1) + beta.unsqueeze(-1).unsqueeze(-1)
 
-    return ofmap, [gamma, beta]
+    return ofmap, gamma, beta
 
 
 def main():
@@ -201,8 +206,6 @@ def main():
         dtype = torch.float16
     else:
         dtype = torch.float32
-
-    dtype = torch.float32
 
     if param['kernel'] == 'Conv2d':
         ifmap = torch.randn(1, param['channels']['in'],
@@ -252,18 +255,19 @@ def main():
 
         emit_header_file('GEMM', **kwargs)
 
-    # elif 'BatchNorm' in sys.argv:
-    #     ofmap, weights = batchnorm(ifmap)
-    #     module = nn.BatchNorm2d
+    elif param['kernel'] == 'BatchNorm':
+        ifmap = torch.randn(1, param['channels']['in'],
+                            param['input_dim']['height'],
+                            param['input_dim']['width'], requires_grad=False, dtype=dtype)
 
-    # elif 'MaxPool' in sys.argv:
-    #     ofmap, weights = max_pooling(ifmap, fh)
-    #     module = nn.MaxPool2d
+        ofmap, gamma, beta = batchnorm(ifmap)
 
-    # else:
-    #     ofmap, weights = batchnorm(ifmap)
-    #     module = nn.BatchNorm2d
-    #     print('Please specify type of layer')
+        # convert from CHW to HWC format
+        ifmap = ifmap.permute(0, 2, 3, 1)
+        ofmap = ofmap.permute(0, 2, 3, 1)
+
+        kwargs = {'ifmap': ifmap, 'beta': beta, 'gamma': gamma, 'ofmap': ofmap}
+        emit_header_file('BatchNorm', **kwargs)
 
 
 if __name__ == '__main__':
