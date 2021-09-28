@@ -299,20 +299,21 @@ void conv2d_layer(layer l) {
                         if (ow + compute_id < l.OW) {
 
                             uint32_t setup_SSR = (ci == 0 && ow == 0 && _oh == 0)? 1 : 0;
-                            uint32_t alpha = (ci != 0 && l.TILE_CI != l.CI);
 
                             if (ci != 0 && l.TILE_CI != l.CI) {
+                                const uint32_t alpha = 0;
                                 gemm_fp64_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
                                                  &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0, l.TA,
                                                  weights, l.FH*l.FW*l.TILE_CI+1, l.TB,
-                                                 &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 0, setup_SSR);
+                                                 &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, &alpha, setup_SSR);
 
                             }
                             else {
+                                const uint32_t alpha = 1;
                                 gemm_fp64_ssr_frep(1, 8, l.FH*l.FW*l.TILE_CI,
                                                    &im2col[read_buf * im2col_mat_stride + compute_id * im2col_row_stride], 0, l.TA,
                                                    weights, l.FH*l.FW*l.TILE_CI+1, l.TB,
-                                                   &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, 1, setup_SSR);
+                                                   &ofmap[write_buf * ofmap_stride + compute_id * ofmap_co_stride], 0, &alpha, setup_SSR);
 
                             }
 

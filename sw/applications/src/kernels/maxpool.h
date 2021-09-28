@@ -4,10 +4,15 @@
 
 #include "snrt.h"
 
-void maxpool_fp64(double *ifmap,
-                  double *ofmap,
-                  uint32_t CI,
-                  uint32_t FH,
-                  uint32_t FW,
-                  uint32_t compute_num,
-                  uint32_t setup_SSR);
+/**
+ * @brief implementation of FP64 maxpooling
+ *
+ * @param ifmap pointer to input feature map
+ * @param ofmap pointer to output feature map
+ * @param CI number of input channels
+ * @param FH height of filter
+ * @param FW width of filter
+ * @param compute_num number of compute units
+ */
+void maxpool_fp64(double *ifmap, double *ofmap, uint32_t CI, uint32_t FH,
+                  uint32_t FW, uint32_t compute_num);

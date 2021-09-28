@@ -94,8 +94,7 @@ void maxpool_layer(layer l) {
                              l.TILE_CI,
                              l.FH,
                              l.FW,
-                             compute_num,
-                             0);
+                             compute_num);
 
                 write_buf = !write_buf;
                 read_buf = !read_buf;
