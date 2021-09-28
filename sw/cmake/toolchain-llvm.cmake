@@ -20,7 +20,7 @@ set(CMAKE_CXX_COMPILER_RANLIB "${CMAKE_RANLIB}")
 ##
 ## Compile options
 ##
-add_compile_options(-mcpu=snitch -mcmodel=medany -ffast-math -fno-builtin-printf -fno-common)
+add_compile_options(-mcpu=snitch -mcmodel=medany -ffast-math -fno-builtin-printf -fno-common -menable-experimental-extensions)
 add_compile_options(-ffunction-sections)
 add_compile_options(-Wextra)
 add_compile_options(-static)
