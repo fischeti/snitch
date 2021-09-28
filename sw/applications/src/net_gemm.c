@@ -11,7 +11,7 @@
 #include "perf_cnt.h"
 #include "math.h"
 
-#define MAT_ROW_PADDING 1
+#define MAT_ROW_PADDING 4
 #define MAT_PADDING 8
 
 int main() {
@@ -27,9 +27,6 @@ int main() {
     volatile uint32_t cluster_id = snrt_cluster_idx();
     volatile uint32_t compute_num = snrt_cluster_compute_core_num();
     volatile uint32_t compute_id = snrt_cluster_compute_core_idx();
-
-    // double *mat_A, *mat_B, *mat_C;
-    // double *ptr = (double*)snrt_cluster_memory().start;
 
     void *mat_A, *mat_B, *mat_C;
     void *ptr = (double*)snrt_cluster_memory().start;
@@ -85,7 +82,7 @@ int main() {
                           &mat_A[A_offset], ldA, l1_gemm_l.TA,
                           mat_B, ldB, l1_gemm_l.TB,
                           &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
+                          &l1_gemm_l.ALPHA, setup_SSR);
             benchmark_get_cycle();
         }
         else if (!l1_gemm_l.TA && l1_gemm_l.TB) {
@@ -101,13 +98,19 @@ int main() {
                           &mat_A[A_offset], ldA, l1_gemm_l.TA,
                           mat_B, ldB, l1_gemm_l.TB,
                           &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
+                          &l1_gemm_l.ALPHA, setup_SSR);
             } else if (l1_gemm_l.dtype == FP32) {
-                gemm_fp32simd_mac_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                gemm_fp32simd_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
                           &mat_A[A_offset], ldA,
                           mat_B, ldB,
                           &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
+                          &l1_gemm_l.ALPHA, setup_SSR);
+            } else if (l1_gemm_l.dtype == FP16) {
+                gemm_fp16simd_tb_ssr_frep(l1_gemm_l.M/compute_num, l1_gemm_l.N, l1_gemm_l.K,
+                          &mat_A[A_offset], ldA,
+                          mat_B, ldB,
+                          &mat_C[C_offset], ldC,
+                          &l1_gemm_l.ALPHA, setup_SSR);
             }
             benchmark_get_cycle();
         }
@@ -123,7 +126,7 @@ int main() {
                           &mat_A[A_offset], ldA, l1_gemm_l.TA,
                           mat_B, ldB, l1_gemm_l.TB,
                           &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
+                          &l1_gemm_l.ALPHA, setup_SSR);
             benchmark_get_cycle();
         }
         else if (l1_gemm_l.TA && l1_gemm_l.TB) {
@@ -138,7 +141,7 @@ int main() {
                           &mat_A[A_offset], ldA, l1_gemm_l.TA,
                           mat_B, ldB, l1_gemm_l.TB,
                           &mat_C[C_offset], ldC,
-                          l1_gemm_l.ALPHA, setup_SSR);
+                          &l1_gemm_l.ALPHA, setup_SSR);
             benchmark_get_cycle();
         }
         snrt_cluster_hw_barrier();
@@ -149,14 +152,40 @@ int main() {
     snrt_cluster_hw_barrier();
 
     if (compute_id == 0) {
-        for (uint32_t m = 0; m < l1_gemm_l.M; m++) {
-            double checksum = gemm_checksum[m];
-            double sum = 0.0;
-            for (uint32_t n = 0; n < l1_gemm_l.N; n++) {
-                sum += ((double *)mat_C)[m * l1_gemm_l.N + n];
+        if (l1_gemm_l.dtype == FP64) {
+            for (uint32_t m = 0; m < l1_gemm_l.M; m++) {
+                double checksum = gemm_checksum[m];
+                double sum = 0.0;
+                for (uint32_t n = 0; n < l1_gemm_l.N; n++) {
+                    sum += ((double *)mat_C)[m * l1_gemm_l.N + n];
+                }
+                if (fabs(sum - checksum) > 0.001) {
+                            errors++;
+                }
             }
-            if (fabs(sum - checksum) > 0.001) {
-                        errors++;
+        }
+        else if (l1_gemm_l.dtype == FP32) {
+            for (uint32_t m = 0; m < l1_gemm_l.M; m++) {
+                float checksum = gemm_checksum[m];
+                float sum = 0.0;
+                for (uint32_t n = 0; n < l1_gemm_l.N; n++) {
+                    sum += ((float *)mat_C)[m * l1_gemm_l.N + n];
+                }
+                if (fabs(sum - checksum) > 0.001) {
+                            errors++;
+                }
+            }
+        }
+        else if (l1_gemm_l.dtype == FP16) {
+            for (uint32_t m = 0; m < l1_gemm_l.M; m++) {
+                __fp16 checksum = gemm_checksum[m];
+                float sum = 0.0;
+                for (uint32_t n = 0; n < l1_gemm_l.N; n++) {
+                    sum += ((__fp16 *)mat_C)[m * l1_gemm_l.N + n];
+                }
+                if (fabs(sum - checksum) > 0.05) {
+                            errors++;
+                }
             }
         }
     }

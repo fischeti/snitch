@@ -1,10 +1,6 @@
 #!/usr/bin/env python
-from math import e
 import numpy as np
-import sys
-import os
 import torch
-from torch._C import dtype
 import torch.nn as nn
 import argparse
 import pathlib
@@ -12,6 +8,7 @@ import hjson
 
 np.random.seed(42)
 torch.manual_seed(42)
+
 
 def array_to_cstr(a):
     out = '{'
@@ -129,7 +126,14 @@ def emit_GEMM_layer(name='gemm', **kwargs):
     layer_str += f'\t.dtype = FP{kwargs["prec"]}\n'
     layer_str += '};\n\n\n'
 
-    dtype = 'double' if kwargs['prec'] == 64 else 'float'
+    ctypes = {
+        '64': 'double',
+        '32': 'float',
+        '16': '__fp16',
+        '8': 'char'
+    }
+
+    dtype = ctypes[str(kwargs['prec'])]
 
     layer_str += f'static {dtype} {name}_A_dram [{m}][{k}] = ' + array_to_cstr(mat_A) + ';\n\n\n'
     layer_str += f'static {dtype} {name}_B_dram [{k}][{n}] = ' + array_to_cstr(mat_B) + ';\n\n\n'
@@ -193,8 +197,12 @@ def main():
 
     if param['prec'] == 64:
         dtype = torch.float64
+    elif param['prec'] == 16:
+        dtype = torch.float16
     else:
         dtype = torch.float32
+
+    dtype = torch.float32
 
     if param['kernel'] == 'Conv2d':
         ifmap = torch.randn(1, param['channels']['in'],
@@ -223,23 +231,24 @@ def main():
 
         result = param['alpha'] * mat_C + torch.matmul(mat_A, mat_B)
 
-
         if param['transpose_A']:
             mat_A = mat_A.T
         if param['transpose_B']:
             mat_B = mat_B.T
 
-        kwargs = {'A': mat_A,
-                'B': mat_B,
-                'C': mat_C,
-                'result': result,
-                'M': param['M'],
-                'N': param['N'],
-                'K': param['K'],
-                'ta': param['transpose_A'],
-                'tb': param['transpose_B'],
-                'alpha': param['alpha'],
-                'prec': param['prec']}
+        kwargs = {
+            'A': mat_A,
+            'B': mat_B,
+            'C': mat_C,
+            'result': result,
+            'M': param['M'],
+            'N': param['N'],
+            'K': param['K'],
+            'ta': param['transpose_A'],
+            'tb': param['transpose_B'],
+            'alpha': param['alpha'],
+            'prec': param['prec']
+            }
 
         emit_header_file('GEMM', **kwargs)
 
@@ -255,7 +264,6 @@ def main():
     #     ofmap, weights = batchnorm(ifmap)
     #     module = nn.BatchNorm2d
     #     print('Please specify type of layer')
-
 
 
 if __name__ == '__main__':
