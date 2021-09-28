@@ -12,17 +12,17 @@
 
 int main() {
 
-    maxpool_l.ifmap = (double*)ifmap_dram;
-    maxpool_l.ofmap = (double*)ofmap_dram;
+    maxpool_l.ifmap = (double*)maxpool_ifmap_dram;
+    maxpool_l.ofmap = (double*)maxpool_ofmap_dram;
     maxpool_l.TILE_CI = 32;
 
     maxpool_layer(maxpool_l);
 
     snrt_global_barrier();
 
-    check_layer(maxpool_l, (double*)checksum);
+    uint32_t error = check_layer(maxpool_l, (double*)maxpool_checksum);
 
     snrt_global_barrier();
 
-    return 0;
+    return error;
 }

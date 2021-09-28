@@ -33,10 +33,12 @@ def emit_header_file(layer_type: str, **kwargs):
     elif layer_type == 'GEMM':
         file = file_path / 'data_gemm.h'
         emit_str += emit_GEMM_layer(**kwargs)
-
     elif layer_type == 'BatchNorm':
         file = file_path / 'data_batchnorm.h'
         emit_str += emit_batchnorm_layer(**kwargs)
+    elif layer_type == 'MaxPool':
+        file = file_path / 'data_maxpool.h'
+        emit_str += emit_maxpool_layer(**kwargs)
     with file.open('w') as f:
         f.write(emit_str)
 
@@ -150,6 +152,36 @@ def emit_batchnorm_layer(name='batchnorm', **kwargs):
     return layer_str
 
 
+def emit_maxpool_layer(name='maxpool', **kwargs):
+
+    ifmap = kwargs['ifmap']
+    ofmap = kwargs['ofmap']
+    k = kwargs['kernel_size']
+
+    n, ih, iw, ci = ifmap.shape
+    _, oh, ow, co = ofmap.shape
+
+    layer_str = ''
+    layer_str += '#include "layer.h"\n\n'
+    layer_str += f'layer {name}_l = {{\n'
+    layer_str += f'\t.CO = {co},\n'
+    layer_str += f'\t.CI = {ci},\n'
+    layer_str += f'\t.IH = {ih},\n'
+    layer_str += f'\t.IW = {iw},\n'
+    layer_str += f'\t.OH = {oh},\n'
+    layer_str += f'\t.OW = {ow},\n'
+    layer_str += f'\t.FH = {k},\n'
+    layer_str += f'\t.FW = {k},\n'
+    layer_str += '};\n\n\n'
+
+    layer_str += f'static double {name}_result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
+    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n'
+    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n'
+
+    return layer_str
+
+
 def conv2d(ifmap, weights, padding=1, stride=1):
     n, ci, ih, iw = ifmap.shape
     co, _, fh, fw = weights.shape
@@ -167,7 +199,7 @@ def max_pooling(ifmap, kernel):
     max_pool = nn.MaxPool2d(kernel_size=kernel)
     ofmap = max_pool(ifmap)
 
-    return ofmap, torch.tensor([kernel, kernel])
+    return ofmap
 
 
 def batchnorm(ifmap):
@@ -268,6 +300,22 @@ def main():
 
         kwargs = {'ifmap': ifmap, 'beta': beta, 'gamma': gamma, 'ofmap': ofmap}
         emit_header_file('BatchNorm', **kwargs)
+
+    elif param['kernel'] == 'MaxPool':
+        ifmap = torch.randn(1, param['channels']['in'],
+                            param['input_dim']['height'],
+                            param['input_dim']['width'], requires_grad=False, dtype=dtype)
+
+        ofmap = max_pooling(ifmap, param['kernel_size'])
+
+        # convert from CHW to HWC format
+        ifmap = ifmap.permute(0, 2, 3, 1)
+        ofmap = ofmap.permute(0, 2, 3, 1)
+
+        kwargs = {'ifmap': ifmap, 'ofmap': ofmap, 'kernel_size': param['kernel_size']}
+        emit_header_file('MaxPool', **kwargs)
+    else:
+        print("No valid kernel selected")
 
 
 if __name__ == '__main__':
