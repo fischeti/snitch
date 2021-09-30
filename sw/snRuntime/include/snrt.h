@@ -93,6 +93,7 @@ extern void snrt_wakeup(uint32_t mask);
 
 extern snrt_slice_t snrt_global_memory();
 extern snrt_slice_t snrt_cluster_memory();
+extern snrt_slice_t snrt_ext_cluster_memory(uint32_t cluster_idx);
 
 extern void snrt_bcast_send(void *data, size_t len);
 extern void snrt_bcast_recv(void *data, size_t len);

@@ -90,4 +90,11 @@ snrt_slice_t snrt_cluster_memory() {
     return _snrt_team_current->root->cluster_mem;
 }
 
+snrt_slice_t snrt_ext_cluster_memory(uint32_t cluster_id) {
+    snrt_slice_t ext_cluster_memory;
+    ext_cluster_memory.start = _snrt_team_current->root->tcdm_start + cluster_id * _snrt_team_current->root->tcdm_offset;
+    ext_cluster_memory.end = ext_cluster_memory.start + _snrt_team_current->root->tcdm_size;
+    return ext_cluster_memory;
+}
+
 void snrt_wakeup(uint32_t mask) { *snrt_peripherals()->wakeup = mask; }
