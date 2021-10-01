@@ -353,7 +353,7 @@ def strb_to_bytes(strobe):
 
 
 # update performance metrics
-def update_perf_dict(trace_dict, perf_dict, r_util, w_util):
+def update_perf_dict(trace_dict, perf_dict, r_util, w_util, read_req_time, write_req_time, rsp_time):
     # we do a cycle anyways
     # perf_dict['num_cycles'] += 1
 
@@ -403,10 +403,25 @@ def update_perf_dict(trace_dict, perf_dict, r_util, w_util):
     if trace_dict['burst_reshaper_burst_req_valid'] and trace_dict['burst_reshaper_burst_req_ready']:
         perf_dict['min_r_util'] = min(perf_dict['min_r_util'], r_util)
         perf_dict['max_r_util'] = max(perf_dict['max_r_util'], r_util)
-        perf_dict['tot_r_util'] += r_util * trace_dict['backend_burst_req_num_bytes']
+        perf_dict['tot_r_util'] += r_util
+        perf_dict['num_burst_req'] += 1
         perf_dict['min_w_util'] = min(perf_dict['min_w_util'], w_util)
         perf_dict['max_w_util'] = max(perf_dict['max_w_util'], w_util)
-        perf_dict['tot_w_util'] += w_util * trace_dict['backend_burst_req_num_bytes']
+        perf_dict['tot_w_util'] += w_util
+
+    if trace_dict['axi_dma_bus_r_valid'] and trace_dict['axi_dma_bus_r_ready']:
+        if len(read_req_time):
+            latency = rsp_time - read_req_time[0]['time']
+            perf_dict['min_r_latency'] = min(perf_dict['min_r_latency'], latency)
+            perf_dict['tot_r_latency'] += latency
+            perf_dict['max_r_latency'] = max(perf_dict['max_r_latency'], latency)
+
+    if trace_dict['axi_dma_bus_w_valid'] and trace_dict['axi_dma_bus_w_ready']:
+        if len(write_req_time):
+            latency = rsp_time - write_req_time[0]['time']
+            perf_dict['min_w_latency'] = min(perf_dict['min_w_latency'], latency)
+            perf_dict['tot_w_latency'] += latency
+            perf_dict['max_w_latency'] = max(perf_dict['max_w_latency'], latency)
 
 
 def safe_divide(n, d):
@@ -440,15 +455,15 @@ def print_perf_stats(perf_dict, trace_dict, period, interval):
                                                            perf_dict['num_act_cycles'] / perf_dict['num_cycles'])
     res += '\n'
 
-    # res += 'Minimal Read Utilization:  {:12.4f}%\n'.format(perf_dict['min_r_util'] * 100.0)
-    # res += 'Average Read Utilization:  {:12.4f}%\n'.format(safe_divide(perf_dict['tot_r_util'], perf_dict['num_cycles']) * 100.0)
-    # res += 'Maximum Read Utilization:  {:12.4f}%\n'.format(perf_dict['max_r_util'] * 100.0)
-    # res += '\n'
+    res += 'Minimal Read Utilization:  {:12.4f}%\n'.format(perf_dict['min_r_util'] * 100.0)
+    res += 'Average Read Utilization:  {:12.4f}%\n'.format(safe_divide(perf_dict['tot_r_util'], perf_dict['num_transfers']) * 100.0)
+    res += 'Maximum Read Utilization:  {:12.4f}%\n'.format(perf_dict['max_r_util'] * 100.0)
+    res += '\n'
 
-    # res += 'Minimal Write Utilization: {:12.4f}%\n'.format(perf_dict['min_w_util'] * 100.0)
-    # res += 'Average Write Utilization: {:12.4f}%\n'.format(safe_divide(perf_dict['tot_w_util'], perf_dict['num_cycles']) * 100.0)
-    # res += 'Maximum Write Utilization: {:12.4f}%\n'.format(perf_dict['max_w_util'] * 100.0)
-    # res += '\n'
+    res += 'Minimal Write Utilization: {:12.4f}%\n'.format(perf_dict['min_w_util'] * 100.0)
+    res += 'Average Write Utilization: {:12.4f}%\n'.format(safe_divide(perf_dict['tot_w_util'], perf_dict['num_transfers']) * 100.0)
+    res += 'Maximum Write Utilization: {:12.4f}%\n'.format(perf_dict['max_w_util'] * 100.0)
+    res += '\n'
 
     run_time     = period / 1000000000 * perf_dict['num_cycles']
     freqency_mhz = 1.0 / period * 1000
@@ -464,15 +479,23 @@ def print_perf_stats(perf_dict, trace_dict, period, interval):
     res += 'Active Write Speed:        {:12.4f} MiB/s @ {:.2f} MHz\n'.format(safe_divide(perf_dict['bytes_written'], active_time) / (1024 * 1024), freqency_mhz)
     res += '\n'
 
-    res += 'Average Read BW Utilization  {:12.4f}%\n'.format(perf_dict['ar_bytes_req'] / trace_dict['DataWidth'] / 8 / perf_dict['num_cycles'] * 100)
-    res += 'Average WRITE BW Utilization {:12.4f}%\n'.format(perf_dict['aw_bytes_req'] / trace_dict['DataWidth'] / 8 / perf_dict['num_cycles'] * 100)
+    res += 'Actual Read BW Utilization  {:12.4f}%\n'.format(perf_dict['ar_bytes_req'] / (trace_dict['DataWidth'] / 8) / perf_dict['num_cycles'] * 100)
+    res += 'Actual Write BW Utilization {:12.4f}%\n'.format(perf_dict['aw_bytes_req'] / (trace_dict['DataWidth'] / 8) / perf_dict['num_cycles'] * 100)
+    res += '\n'
+
+    res += 'Minimal Read Latency       {:7d}\n'.format(perf_dict['min_r_latency'])
+    res += 'Average Read Latency       {:7d}\n'.format(int(safe_divide(perf_dict['tot_r_latency'], perf_dict['num_transfers'])))
+    res += 'Maximal Read Latency       {:7d}\n'.format(perf_dict['max_r_latency'])
+    res += '\n'
+
+    res += 'Minimal Write Latency      {:7d}\n'.format(perf_dict['min_w_latency'])
+    res += 'Average Write Latency      {:7d}\n'.format(int(safe_divide(perf_dict['tot_w_latency'], perf_dict['num_transfers'])))
+    res += 'Maximal Write Latency      {:7d}\n'.format(perf_dict['max_w_latency'])
     res += '\n'
 
     res += 'Wait for Read:             {:12.4f}%\n'.format(safe_divide(perf_dict['wait_for_read'], perf_dict['num_act_cycles']) * 100.0)
     res += 'Wait for Write:            {:12.4f}%\n'.format(safe_divide(perf_dict['wait_for_write'], perf_dict['num_act_cycles']) * 100.0)
     res += 'Internal Stall:            {:12.4f}%\n'.format(safe_divide(perf_dict['stall_internal'], perf_dict['num_act_cycles']) * 100.0)
-
-
 
     return res + '\n'
 
@@ -534,13 +557,20 @@ def trace_file (filename, stop_on_error = True, silent = False):
                   'tot_len'       : 0,
                   'max_len'       : 0,
                   'num_transfers' : 0,
+                  'num_burst_req' : 0,
                   'min_r_util'    : sys.maxsize,
                   'max_r_util'    : 0,
                   'tot_r_util'    : 0,
                   'min_w_util'    : sys.maxsize,
                   'max_w_util'    : 0,
                   'tot_w_util'    : 0,
-                  'DataWidth'     : 0
+                  'min_r_latency' : sys.maxsize,
+                  'tot_r_latency' : 0,
+                  'max_r_latency' : 0,
+                  'min_w_latency' : sys.maxsize,
+                  'tot_w_latency' : 0,
+                  'max_w_latency' : 0,
+                  'DataWidth'     : 0,
                 }
 
     # Section tracking
@@ -558,6 +588,9 @@ def trace_file (filename, stop_on_error = True, silent = False):
         period = 0
         r_util = 0
         w_util = 0
+        backend_read_req_time = []
+        backend_write_req_time = []
+
         for line in trace_file:
             # each line is a dict
             try:
@@ -601,8 +634,9 @@ def trace_file (filename, stop_on_error = True, silent = False):
             # new burst request arrives
             if trace_dict['backend_burst_req_valid'] and trace_dict['backend_burst_req_ready']:
                 frame.append(burst_req_in(trace_dict))
+                backend_read_req_time.append({'time': time, 'arrived': False})
+                backend_write_req_time.append({'time': time, 'arrived': False})
                 num_outstanding += 1
-
 
             # new burst request enters burst reshaper
             if trace_dict['burst_reshaper_burst_req_valid'] and trace_dict['burst_reshaper_burst_req_ready']:
@@ -653,9 +687,19 @@ def trace_file (filename, stop_on_error = True, silent = False):
                 last_time = time
 
             # update perf_dict
-            update_perf_dict(trace_dict, perf_dict, r_util, w_util)
+            update_perf_dict(trace_dict, perf_dict, r_util, w_util, backend_read_req_time, backend_write_req_time, time)
             if in_section:
-                update_perf_dict(trace_dict, section_perf_dict, r_util, w_util)
+                update_perf_dict(trace_dict, section_perf_dict, r_util, w_util, backend_read_req_time, backend_write_req_time, time)
+
+            # retire requests if finished
+            if trace_dict['axi_dma_bus_r_valid'] and trace_dict['axi_dma_bus_r_ready']:
+                if len(backend_read_req_time):
+                    backend_read_req_time.pop(0)
+
+            # retire write requests if finished
+            if trace_dict['axi_dma_bus_w_valid'] and trace_dict['axi_dma_bus_w_ready']:
+                if len(backend_write_req_time):
+                    backend_write_req_time.pop(0)
 
             # stop trace at first error
             if error and stop_on_error:
